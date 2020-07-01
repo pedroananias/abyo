@@ -97,7 +97,7 @@ try:
                    date_end=dt.strptime(args.date_end, "%Y-%m-%d"),
                    sensor="landsat578",
                    cache_path=folderCache, 
-                   force_cache=False)
+                   force_cache=True)
 
   # preprocessing
   abyo.process_timeseries_data()
