@@ -1,4 +1,4 @@
-### Algal Bloom Yearly Occurrence
+##### Algal Bloom Yearly Occurrence
 
 Module responsable for extracting Algal Bloom Yearly Occurences in a region of interest based on images from Google Earth Engine API
 
@@ -37,7 +37,7 @@ The following results are generated:
 - timeseries.csv (Annual time series of pixels, latitude, longitude, sum of the Slope and labels and occurrences of algae bloom (based on the threshold of the Slope algorithm) and clouds)
 - occurrences.png (Graphs of occurrences separated annually from algal blooms)
 - occurrences_clouds.png (Graphs of occurrences separated annually from clouds)
-- ocurrences.json (GeoJSON of occurrences with parameters (occurrence, cloud and year) that can be imported into QGIS and filtered)
+- occurrences.json (GeoJSON of occurrences with parameters (occurrence, cloud and year) that can be imported into QGIS and filtered)
 
 
 
