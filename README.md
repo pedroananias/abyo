@@ -43,7 +43,7 @@ The following results are generated:
 
 ### Exporting GeoTIFFs to Google Drive
 
-When using the 'save_collection_tiff' function, a folder called 'abyo.data.tiff' will be created in the Google Drive of the user who authenticated. Daily images used in the composition of the annual time series are saved. These images will be separated by the following bands: Red, Green, Blue and Label (-1 = cloud, 0 = regular and 1 = anomaly). However, after running the Abyo script, images are likely to take a while to be inserted into Drive due to processing time. It is necessary to wait approximately 1 day until they are all available, depending on the size of the study area.
+When using the 'save_collection_tiff' function, a folder called 'abyo.data.tiff' will be created in the Google Drive of the user who authenticated. Daily images used in the composition of the annual time series are saved. These images will be separated by the following bands: Red, Green, Blue, Cloud/Only Water Body and Occurrence/Only Water Body (0 = regular and 1 = anomaly/algal bloom). However, after running the Abyo script, images are likely to take a while to be inserted into Drive due to processing time. It is necessary to wait approximately 1 day until they are all available, depending on the size of the study area.
 
 
 

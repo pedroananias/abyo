@@ -574,7 +574,7 @@ class Abyo:
     print("Saving image collection in tiff to your Google Drive at folder '"+str(folderName)+"'...")
 
     # select image attributes to be exported
-    attributes = ['label_water']
+    attributes = ['occurrence_water', 'cloud_water']
 
     # go through all the collection
     for date in self.dates_timeseries_interval:
