@@ -549,14 +549,18 @@ class Abyo:
     if not os.path.exists(folder):
       os.mkdir(folder)
 
+    # years list
+    years_list = df.groupby('year')['year'].agg('mean').values
+
     # save occurrences data
-    features = []
-    for index, row in df.iterrows():
-      features.append(geojson.Feature(geometry=geojson.Point((row['lat'], row['lon'])), properties={"occurrence": int(row['occurrence']), "cloud": int(row['cloud']), "year": int(row['year'])}))
-    fc = geojson.FeatureCollection(features)
-    f = open(folder+"/occurrences.json","w")
-    geojson.dump(fc, f)
-    f.close()
+    for year in years_list:
+      features = []
+      for index, row in df[df['year']==year].iterrows():
+        features.append(geojson.Feature(geometry=geojson.Point((row['lat'], row['lon'])), properties={"occurrence": int(row['occurrence']), "cloud": int(row['cloud']), "year": int(row['year'])}))
+      fc = geojson.FeatureCollection(features)
+      f = open(folder+"/occurrences_"+str(int(year))+".json","w")
+      geojson.dump(fc, f)
+      f.close()
 
 
   # save a collection in tiff (zip) to folder (time series)

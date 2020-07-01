@@ -109,7 +109,7 @@ try:
   abyo.save_occurrences_plot(df=abyo.df_timeseries, folder=folder)
 
   # save geojson occurrences and clouds
-  abyo.save_occurrences_geojson(df=abyo.df_timeseries, folder=folder)
+  abyo.save_occurrences_geojson(df=abyo.df_timeseries, folder=folder+"/geojson")
 
   # save images to Google Drive
   abyo.save_collection_tiff()
