@@ -1,4 +1,4 @@
-##### Algal Bloom Yearly Occurrence
+# Algal Bloom Yearly Occurrence
 
 Module responsable for extracting Algal Bloom Yearly Occurences in a region of interest based on images from Google Earth Engine API
 
@@ -21,7 +21,7 @@ earthengine authenticate
 
 
 
-#### How to execute the default script?
+### How to execute the default script?
 
 python /path/to/abyo/script.py --lat_lon=-48.84725671390528,-22.04547298853004,-47.71712046185493,-23.21347463046867 --name=bbhr --date_start=1985-01-01 --date_end=1018-12-31
 
@@ -47,7 +47,7 @@ When using the 'save_collection_tiff' function, a folder called 'abyo.data.tiff'
 
 
 
-### Exemplo
+### Example
 
 ```
 # folder where to save results
