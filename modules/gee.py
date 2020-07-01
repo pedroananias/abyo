@@ -135,7 +135,7 @@ def get_sensor_params(sensor: str):
 
 
 # Extract the coordinates of an image, pixel by pixel
-def extract_latitude_longitude_pixel(image: ee.Image, geometry: ee.Geometry, bands: list, scale: int = 30, tile_scale: int = 1):
+def extract_latitude_longitude_pixel(image: ee.Image, geometry: ee.Geometry, bands: list, scale: int = 30, tile_scale: int = 16):
 
   # extract pixels lat and lons
   coordinates   = image.addBands(ee.Image.pixelLonLat()).select(['longitude', 'latitude']+bands)
