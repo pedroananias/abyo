@@ -34,7 +34,7 @@ The script will generate annual results of occurrence of algae and clouds bloomi
 
 The following results are generated:
 
-- timeseries.csv (Annual time series of pixels, latitude, longitude, sum of the Slope index and labels and occurrences of algae bloom (based on the threshold of the Slope index) and clouds)
+- timeseries.csv (Annual time series of pixels, year, latitude, longitude and occurrences of algae bloom (based on the threshold of the Slope index) and clouds)
 - occurrences.png (Graphs of occurrences separated annually from algal blooms)
 - occurrences_clouds.png (Graphs of occurrences separated annually from clouds)
 - geojson/occurrences_{year}.json (GeoJSON of occurrences by year with parameters (occurrence, cloud and year) that can be imported into QGIS and filtered)

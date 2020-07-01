@@ -80,7 +80,7 @@ class Abyo:
   collection_yearly           = None
 
   # attributes used in timeseries
-  attributes                  = ['cloud', 'slope', 'label', 'occurrence']
+  attributes                  = ['cloud', 'occurrence']
 
   # dataframes
   df_columns                  = ['pixel', 'index', 'year', 'lat', 'lon']+attributes
