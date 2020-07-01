@@ -50,6 +50,13 @@ When using the 'save_collection_tiff' function, a folder called 'abyo.data.tiff'
 ### Example
 
 ```
+# Import
+import ee
+from modules import abyo
+
+# Initialize Google Earth Engine
+ee.Initialize()
+
 # folder where to save results
 folder = "/path/to/desired/folder"
 
