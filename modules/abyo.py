@@ -57,7 +57,7 @@ class Abyo:
   # configuration
   anomaly                     = 1
   dummy                       = -99999
-  max_tile_pixels             = 1000000 # if higher, will split the geometry into tiles
+  max_tile_pixels             = 10000000 # if higher, will split the geometry into tiles
 
   # supports
   dates_timeseries            = [None, None]
@@ -564,14 +564,18 @@ class Abyo:
 
 
   # save a collection in tiff (zip) to folder (time series)
-  def save_collection_tiff(self):
+  def save_collection_tiff(self, folder: str, folderName: str):
 
     # build Google Drive folder name where tiffs will be saved in
-    folderName = "abyo."+(str(dt.now().strftime("%Y%m%d_%H%M%S")))+".tiff"
+    folderName = "abyo_"+str(folderName)+".tiff"
     
     # warning
     print()
-    print("Saving image collection in tiff to your Google Drive at folder '"+str(folderName)+"'...")
+    print("Saving image collection in tiff to Folder '"+str(folder)+"' (first try, based on image size) or to your Google Drive at folder '"+str(folderName)+"'...")
+
+    # check if folder exists
+    if not os.path.exists(folder):
+      os.mkdir(folder)
 
     # select image attributes to be exported
     attributes = ['occurrence_water', 'cloud_water']
@@ -593,11 +597,21 @@ class Abyo:
         elif 'LC08' in sensor:
           bands = [gee.get_sensor_params("landsat")['red'], gee.get_sensor_params("landsat")['green'], gee.get_sensor_params("landsat")['blue']]+attributes
 
-      # export image to Google Drive
+      # export image
       for band in bands:
-        task = ee.batch.Export.image.toDrive(image=image.select(band), folder=folderName, description=date.strftime("%Y-%m-%d")+"_"+str(band), region=self.geometry)
-        task.start()
-        print(task.status())
+
+        # First try, save in local folder
+        try:
+          print("Trying to save GeoTIFF to local folder...")
+          open(folder+'/'+date.strftime("%Y-%m-%d")+"_"+str(band)+'.tiff', 'wb').write(requests.get(image.select(band).getDownloadUrl({"name": date.strftime("%Y-%m-%d")+"_"+str(band), "region":self.geometry, "filePerBand": False}), allow_redirects=True).content)
+          print("finished!")
+
+        # Second try, save in Google Drive
+        except:
+          print("Error! It was not possible to save GeoTIFF localy. Trying to save it in Google Drive...")
+          task = ee.batch.Export.image.toDrive(image=image.select(band), folder=folderName, description=date.strftime("%Y-%m-%d")+"_"+str(band), region=self.geometry)
+          task.start()
+          print(task.status())
 
     # warning
     print("finished!")

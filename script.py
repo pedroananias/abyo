@@ -47,7 +47,7 @@ parser.add_argument('--lat_lon', dest='lat_lon', action='store', default="-48.84
                    help="Two diagnal points (Latitude 1, Longitude 1, Latitude 2, Longitude 2) of the study area")
 parser.add_argument('--date_start', dest='date_start', action='store', default="1985-01-01",
                    help="Date to start time series")
-parser.add_argument('--date_end', dest='date_end', action='store', default="2018-12-31",
+parser.add_argument('--date_end', dest='date_end', action='store', default="2001-12-31",
                    help="Date to end time series")
 parser.add_argument('--name', dest='name', action='store', default="bbhr",
                    help="Place where to save generated files")
@@ -111,8 +111,8 @@ try:
   # save geojson occurrences and clouds
   abyo.save_occurrences_geojson(df=abyo.df_timeseries, folder=folder+"/geojson")
 
-  # save images to Google Drive
-  abyo.save_collection_tiff()
+  # save images to Local Fodler (first try, based on image size) or to your Google Drive
+  abyo.save_collection_tiff(folder=folder+"/tiff", folderName=args.name)
 
   # ### Script termination notice
   script_time_all = time.time() - start_time

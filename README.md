@@ -30,7 +30,9 @@ python /path/to/abyo/script.py --lat_lon=-48.84725671390528,-22.04547298853004,-
 
 ### What are the results?
 
-The script will generate annual results of occurrence of algae and clouds blooming in the inserted study area. Therefore, a folder located in 'data' is created and named based on the date and version of the script executed. Example: /path/to/abyo/data/20200701_111426[v=V1-bbhr,date_start=1985-01-01,date_end=2018-12-31]
+The script will generate annual results of occurrence of algae and clouds blooming in the inserted study area. Therefore, a folder located in 'data' is created and named based on the date and version of the script executed. Example: /path/to/abyo/data/20200701_111426[v=V1-bbhr,date_start=1985-01-01,date_end=2001-12-31]. 
+
+ATTENTION: big date range tends to lead to memory leak, stopping the script execution. It is alwaysa a good pratice to split the dates in two or three parts, unless you have a big amount of memory in your computer.
 
 The following results are generated:
 
@@ -38,12 +40,12 @@ The following results are generated:
 - occurrences.png (Graphs of occurrences separated annually from algal blooms)
 - occurrences_clouds.png (Graphs of occurrences separated annually from clouds)
 - geojson/occurrences_{year}.json (GeoJSON of occurrences by year with parameters (occurrence, cloud and year) that can be imported into QGIS and filtered)
-
+- tiff/{date}_{band}.tiff (GeoTIFFs of bands Red, Blue, Green, Water Body Clouds and Occurences of the study area. If the script can not save those images in locally, will send them to Google Drive)
 
 
 ### Exporting GeoTIFFs to Google Drive
 
-When using the 'save_collection_tiff' function, a folder called 'abyo.data.tiff' will be created in the Google Drive of the user who authenticated. Daily images used in the composition of the annual time series are saved. These images will be separated by the following bands: Red, Green, Blue, Cloud/Only Water Body and Occurrence/Only Water Body (0 = regular and 1 = anomaly/algal bloom). However, after running the Abyo script, images are likely to take a while to be inserted into Drive due to processing time. It is necessary to wait approximately 1 day until they are all available, depending on the size of the study area.
+When using the 'save_collection_tiff' function, if the script can not save images locally, will send them to Google Drive to a folder called 'abyo_name.tiff' for user who is authenticated. Daily images used in the composition of the annual time series are saved. These images will be separated by the following bands: Red, Green, Blue, Cloud/Only Water Body and Occurrence/Only Water Body (0 = regular and 1 = anomaly/algal bloom). However, after running the Abyo script, images are likely to take a while to be inserted into Drive due to processing time. It is necessary to wait approximately 1 day until they are all available, depending on the size of the study area.
 
 
 
@@ -78,8 +80,8 @@ abyo.save_dataset(df=abyo.df_timeseries, path=folder+'/timeseries.csv')
 abyo.save_occurrences_plot(df=abyo.df_timeseries, folder=folder)
 
 # save geojson occurrences
-abyo.save_occurrences_geojson(df=abyo.df_timeseries, folder=folder)
+abyo.save_occurrences_geojson(df=abyo.df_timeseries, folder+"/geojson")
 
 # save daily images to Google Drive
-abyo.save_collection_tiff()
+abyo.save_collection_tiff(folder=folder+"/tiff", folderName="bbhr")
 ```
