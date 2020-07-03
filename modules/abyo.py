@@ -602,7 +602,8 @@ class Abyo:
       # First try, save in local folder
       try:
         print("Trying to save "+date.strftime("%Y-%m-%d")+" GeoTIFF to local folder...")
-        open(folder+'/'+date.strftime("%Y-%m-%d")+'.zip', 'wb').write(requests.get(image.select(bands).getDownloadUrl({"name": date.strftime("%Y-%m-%d"), "region":self.geometry, "filePerBand": True}), allow_redirects=True).content)
+        image_download_url = image.select(bands).getDownloadUrl({"name": date.strftime("%Y-%m-%d"), "region":self.geometry, "filePerBand": True})
+        open(folder+'/'+date.strftime("%Y-%m-%d")+'.zip', 'wb').write(requests.get(image_download_url, allow_redirects=True).content)
         print("finished!")
 
       # Second try, save in Google Drive
