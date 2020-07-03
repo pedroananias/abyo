@@ -374,7 +374,7 @@ class Abyo:
         clip = self.clip_image(self.extract_image_from_collection_yearly(year=year))
         
         # go through each tile
-        lons_lats_attributes = np.array([], dtype=np.int64).reshape(0, len(self.attributes)+2)
+        lons_lats_attributes = np.array([], dtype=np.float64).reshape(0, len(self.attributes)+2)
         for i, geometry in enumerate(self.splitted_geometry):
           print("Extracting geometry ("+str(len(lons_lats_attributes))+") "+str(i+1)+" of "+str(len(self.splitted_geometry))+"...")
           geometry_lons_lats_attributes = gee.extract_latitude_longitude_pixel(image=clip, geometry=geometry, bands=[a+"_water" for a in self.attributes], scale=self.sensor_params['scale'])
@@ -387,9 +387,8 @@ class Abyo:
       except:
         
         # warning
-        print("Error while extracting pixels from year "+str(year))
+        print("Error while extracting pixels from year "+str(year)+":")
         print(traceback.format_exc())
-        #sys.exit()
 
         # reset attributes
         lons_lats_attributes = None
@@ -416,6 +415,8 @@ class Abyo:
     # no data do return
     except:
 
+      # show error
+      print("Error while extracting pixels from year "+str(year)+":")
       print(traceback.format_exc())
 
       # remove cache file
@@ -448,17 +449,18 @@ class Abyo:
     str_date    = str(int(min(years_list))) + ' to ' + str(int(max(years_list)))
 
     # number of columns
-    fig_height  = 2.6
     zoom        = 5
-    columns     = 6
+    columns     = 6 if len(years_list)>=6 else len(years_list)
     rows        = math.ceil(len(years_list)/columns)
+    fig_height  = 16/columns
   
     # axis ticks
     xticks      = np.linspace(self.sample_lon_lat[0][1], self.sample_lon_lat[1][1], num=4)
     yticks      = np.linspace(self.sample_lon_lat[0][0], self.sample_lon_lat[1][0], num=4)
 
     # colorbar tixks
-    colorbar_ticks              = np.linspace(1, math.ceil(int(df['occurrence'].max()/zoom)), num=5, dtype=int)
+    colorbar_ticks_max          = math.ceil(int(df['occurrence'].max()/zoom))
+    colorbar_ticks              = np.linspace(1, colorbar_ticks_max if colorbar_ticks_max > 1 else 2, num=5, dtype=int)
     colorbar_ticks_labels       = [str(l) for l in colorbar_ticks]
     colorbar_ticks_labels[-1]   = str(colorbar_ticks_labels[-1])+"+"
 
@@ -597,18 +599,16 @@ class Abyo:
         elif 'LC08' in sensor:
           bands = [gee.get_sensor_params("landsat")['red'], gee.get_sensor_params("landsat")['green'], gee.get_sensor_params("landsat")['blue']]+attributes
 
-      # export image
-      for band in bands:
+      # First try, save in local folder
+      try:
+        print("Trying to save "+date.strftime("%Y-%m-%d")+" GeoTIFF to local folder...")
+        open(folder+'/'+date.strftime("%Y-%m-%d")+'.zip', 'wb').write(requests.get(image.select(bands).getDownloadUrl({"name": date.strftime("%Y-%m-%d"), "region":self.geometry, "filePerBand": True}), allow_redirects=True).content)
+        print("finished!")
 
-        # First try, save in local folder
-        try:
-          print("Trying to save GeoTIFF to local folder...")
-          open(folder+'/'+date.strftime("%Y-%m-%d")+"_"+str(band)+'.tiff', 'wb').write(requests.get(image.select(band).getDownloadUrl({"name": date.strftime("%Y-%m-%d")+"_"+str(band), "region":self.geometry, "filePerBand": False}), allow_redirects=True).content)
-          print("finished!")
-
-        # Second try, save in Google Drive
-        except:
-          print("Error! It was not possible to save GeoTIFF localy. Trying to save it in Google Drive...")
+      # Second try, save in Google Drive
+      except:
+        print("Error! It was not possible to save GeoTIFF localy. Trying to save it in Google Drive...")
+        for band in bands:
           task = ee.batch.Export.image.toDrive(image=image.select(band), folder=folderName, description=date.strftime("%Y-%m-%d")+"_"+str(band), region=self.geometry)
           task.start()
           print(task.status())
