@@ -40,7 +40,7 @@ The following results are generated:
 - occurrences.png (Graphs of occurrences separated annually from algal blooms)
 - occurrences_clouds.png (Graphs of occurrences separated annually from clouds)
 - geojson/occurrences_{year}.json (GeoJSON of occurrences by year with parameters (occurrence, cloud and year) that can be imported into QGIS and filtered)
-- tiff/{date}_{band}.tiff (GeoTIFFs of bands Red, Blue, Green, Water Body Clouds and Occurences of the study area. If the script can not save those images in locally, will send them to Google Drive)
+- tiff/{date}.zip (ZIP of GeoTIFFs comprehending bandsCloud/Only Water Body and Occurrence/Only Water Body (0 = regular and 1 = anomaly/algal bloom) of the study area. If the script can not save those images in locally, will send them to Google Drive)
 
 
 ### Exporting GeoTIFFs to Google Drive
