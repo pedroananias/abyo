@@ -387,8 +387,7 @@ class Abyo:
       except:
         
         # warning
-        print("Error while extracting pixels from year "+str(year)+":")
-        print(traceback.format_exc())
+        print("Error while extracting pixels from year "+str(year)+": "+str(traceback.format_exc()))
 
         # reset attributes
         lons_lats_attributes = None
