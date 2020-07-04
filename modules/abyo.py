@@ -311,6 +311,10 @@ class Abyo:
         if self.cache_path:
           joblib.dump(df_timeseries, cache_files[1])
 
+    # correct columns types
+    df_timeseries[['pixel','year']] = df_timeseries['pixel','year'].astype('int64')
+    df_timeseries[self.attributes+['lat','lon']] = df_timeseries[self.attributes+['lat','lon']].astype('float64')
+
     # remove dummies
     for attribute in [a for a in self.attributes if a != 'cloud']:
       df_timeseries = df_timeseries[(df_timeseries[attribute]!=abs(self.dummy))]
