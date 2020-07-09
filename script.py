@@ -7,10 +7,11 @@
 #                
 # ### Change History
 # - Version 1: Repository creation
+# - Version 2: Fixed cloud/cloud shadow pixel calculation for Landsat 5,7 and 8
 #########################################################################################################################################
 
 # ### Version
-version = "V1"
+version = "V2"
 
 
 
@@ -112,7 +113,7 @@ try:
   abyo.save_occurrences_geojson(df=abyo.df_timeseries, folder=folder+"/geojson")
 
   # save images to Local Fodler (first try, based on image size) or to your Google Drive
-  abyo.save_collection_tiff(folder=folder+"/tiff", folderName=args.name)
+  #abyo.save_collection_tiff(folder=folder+"/tiff", folderName=args.name)
 
   # ### Script termination notice
   script_time_all = time.time() - start_time

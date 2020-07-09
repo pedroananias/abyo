@@ -228,14 +228,14 @@ def mask_cloud_shadow(image, sensor: str):
   # Absolute Values: https://prd-wret.s3.us-west-2.amazonaws.com/assets/palladium/production/atoms/files/LSDS-1370_L4-7_SurfaceReflectance-LEDAPS_ProductGuide-v2.pdf
   elif sensor == "landsat5":
       qa = image.select('pixel_qa')
-      return qa.bitwiseAnd(1 << 3).eq(0) and (qa.bitwiseAnd(1 << 5).eq(0)) and (qa.bitwiseAnd(1 << 7).eq(0))
+      return (qa.bitwiseAnd(1 << 5).eq(0) and (qa.bitwiseAnd(1 << 7).eq(0))) or (qa.bitwiseAnd(1 << 3).eq(0))
 
   # Landsat-7/ETM+
   # Binary Values: https://landsat.usgs.gov/sites/default/files/documents/landsat_QA_tools_userguide.pdf
   # Absolute Values: https://prd-wret.s3.us-west-2.amazonaws.com/assets/palladium/production/atoms/files/LSDS-1370_L4-7_SurfaceReflectance-LEDAPS_ProductGuide-v2.pdf
   elif sensor == "landsat7":
       qa = image.select('pixel_qa')
-      return qa.bitwiseAnd(1 << 3).eq(0) and (qa.bitwiseAnd(1 << 5).eq(0)) and (qa.bitwiseAnd(1 << 7).eq(0))
+      return (qa.bitwiseAnd(1 << 5).eq(0) and (qa.bitwiseAnd(1 << 7).eq(0))) or (qa.bitwiseAnd(1 << 3).eq(0))
 
   # Landsat-8/OLI
   # Binary Values: https://landsat.usgs.gov/sites/default/files/documents/landsat_QA_tools_userguide.pdf
