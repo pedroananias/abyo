@@ -52,6 +52,8 @@ parser.add_argument('--date_end', dest='date_end', action='store', default="2001
                    help="Date to end time series")
 parser.add_argument('--name', dest='name', action='store', default="bbhr",
                    help="Place where to save generated files")
+parser.add_argument('--force_cache', dest='force_cache', action='store', type=bool, default=False,
+                   help="Force cache reseting to prevent image errors")
 
 # parsing arguments
 args = parser.parse_args()
@@ -98,7 +100,7 @@ try:
                    date_end=dt.strptime(args.date_end, "%Y-%m-%d"),
                    sensor="landsat578",
                    cache_path=folderCache, 
-                   force_cache=False)
+                   force_cache=args.force_cache)
 
   # preprocessing
   abyo.process_timeseries_data()
