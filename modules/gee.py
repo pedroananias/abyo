@@ -278,7 +278,7 @@ def mask_water(image, sensor: str):
   # Binary Values: https://landsat.usgs.gov/sites/default/files/documents/landsat_QA_tools_userguide.pdf
   # Absolute Values: https://prd-wret.s3.us-west-2.amazonaws.com/assets/palladium/production/atoms/files/LSDS-1368_L8_SurfaceReflectanceCode-LASRC_ProductGuide-v2.pdf
   else:
-      qa = image.select('pixel_qa').bitwiseAnd(1 << 2).eq(0)
+      qa = image.select('pixel_qa')
       return qa.bitwiseAnd(1 << 2).eq(0)
 
 

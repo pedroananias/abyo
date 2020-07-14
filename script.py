@@ -52,7 +52,7 @@ parser.add_argument('--date_end', dest='date_end', action='store', default="2001
                    help="Date to end time series")
 parser.add_argument('--name', dest='name', action='store', default="bbhr",
                    help="Place where to save generated files")
-parser.add_argument('--force_cache', dest='force_cache', action='store', type=bool, default=False,
+parser.add_argument('--force_cache', dest='force_cache', action='store_true',
                    help="Force cache reseting to prevent image errors")
 
 # parsing arguments
@@ -114,8 +114,8 @@ try:
   # save geojson occurrences and clouds
   abyo.save_occurrences_geojson(df=abyo.df_timeseries, folder=folder+"/geojson")
 
-  # save images to Local Fodler (first try, based on image size) or to your Google Drive
-  #abyo.save_collection_tiff(folder=folder+"/tiff", folderName=args.name)
+  # save images to Local Folder (first try, based on image size) or to your Google Drive
+  #abyo.save_collection_tiff(folder=folder+"/tiff", folderName=args.name+"_"+version, rgb=False)
 
   # ### Script termination notice
   script_time_all = time.time() - start_time

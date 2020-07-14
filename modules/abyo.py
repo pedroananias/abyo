@@ -187,10 +187,7 @@ class Abyo:
         water_mask = water_mask.focal_min(kernel=ee.Kernel.square(radius=1), iterations=morph_op_iters)
 
     # build image with mask
-    if self.sensor == "modis":
-      return ee.Image(0).blend(ee.Image(abs(self.dummy)).updateMask(water_mask))
-    else:
-      return ee.Image(0).blend(ee.Image(abs(self.dummy)).updateMask(water_mask)).eq(abs(self.dummy))
+    return ee.Image(0).blend(ee.Image(abs(self.dummy)).updateMask(water_mask))
 
 
   # clipping image
@@ -211,7 +208,9 @@ class Abyo:
   def extract_image_from_collection(self, date):
     collection = self.collection.filter(ee.Filter.date(date.strftime("%Y-%m-%d"), (date + td(days=1)).strftime("%Y-%m-%d")))
     if int(collection.size().getInfo()) == 0:
-      return None
+      collection = self.collection.filter(ee.Filter.date(date.strftime("%Y-%m-%d"), (date + td(days=2)).strftime("%Y-%m-%d")))
+      if int(collection.size().getInfo()) == 0:
+        return None
     return self.apply_water_mask(ee.Image(collection.max()).set('system:id', collection.first().get('system:id').getInfo()), False)
     
 
@@ -321,6 +320,9 @@ class Abyo:
 
     # change cloud values
     df_timeseries.loc[df_timeseries['cloud'] == abs(self.dummy), 'cloud'] = 0.0
+
+    # remove duplicated values
+    df_timeseries.drop_duplicates(subset=['pixel','year','lat','lon']+self.attributes, keep='last', inplace=True)
 
     # save modified dataframe to its original variable
     self.df_timeseries = df_timeseries[self.df_columns]
@@ -569,7 +571,7 @@ class Abyo:
 
 
   # save a collection in tiff (zip) to folder (time series)
-  def save_collection_tiff(self, folder: str, folderName: str):
+  def save_collection_tiff(self, folder: str, folderName: str, rgb: bool = False):
 
     # build Google Drive folder name where tiffs will be saved in
     folderName = "abyo_"+str(folderName)+".tiff"
@@ -592,15 +594,18 @@ class Abyo:
       image = self.clip_image(self.extract_image_from_collection(date=date), geometry=self.geometry)
 
       # check if its landsat merge
-      bands = [self.sensor_params['red'], self.sensor_params['green'], self.sensor_params['blue']]+attributes
-      if self.sensor_params["sensor"] == "landsat578":
-        sensor = image.get(self.sensor_params["property_id"]).getInfo()
-        if 'LT05' in sensor:
-          bands = [gee.get_sensor_params("landsat5")['red'], gee.get_sensor_params("landsat5")['green'], gee.get_sensor_params("landsat5")['blue']]+attributes
-        elif 'LE07' in sensor:
-          bands = [gee.get_sensor_params("landsat7")['red'], gee.get_sensor_params("landsat7")['green'], gee.get_sensor_params("landsat7")['blue']]+attributes
-        elif 'LC08' in sensor:
-          bands = [gee.get_sensor_params("landsat")['red'], gee.get_sensor_params("landsat")['green'], gee.get_sensor_params("landsat")['blue']]+attributes
+      if rgb:
+        bands = [self.sensor_params['red'], self.sensor_params['green'], self.sensor_params['blue']]+attributes
+        if self.sensor_params["sensor"] == "landsat578":
+          sensor = image.get(self.sensor_params["property_id"]).getInfo()
+          if 'LT05' in sensor:
+            bands = [gee.get_sensor_params("landsat5")['red'], gee.get_sensor_params("landsat5")['green'], gee.get_sensor_params("landsat5")['blue']]+attributes
+          elif 'LE07' in sensor:
+            bands = [gee.get_sensor_params("landsat7")['red'], gee.get_sensor_params("landsat7")['green'], gee.get_sensor_params("landsat7")['blue']]+attributes
+          elif 'LC08' in sensor:
+            bands = [gee.get_sensor_params("landsat")['red'], gee.get_sensor_params("landsat")['green'], gee.get_sensor_params("landsat")['blue']]+attributes
+      else:
+        bands = attributes
 
       # First try, save in local folder
       try:
