@@ -80,7 +80,7 @@ class Abyo:
   collection_yearly           = None
 
   # attributes used in timeseries
-  attributes                  = ['cloud', 'occurrence']
+  attributes                  = ['cloud', 'occurrence', 'not_occurrence']
 
   # dataframes
   df_columns                  = ['pixel', 'index', 'year', 'lat', 'lon']+attributes
@@ -269,7 +269,8 @@ class Abyo:
     print("Starting time series processing ...")
 
     # attributes
-    df_timeseries  = pd.DataFrame(columns=self.df_columns)
+    df_columns = self.df_columns+['pct_occurrence', 'pct_cloud', 'instants']
+    df_timeseries  = pd.DataFrame(columns=df_columns)
 
     # check timeseries is already on cache
     cache_files    = self.get_cache_files(year=dt.now().strftime("%Y"))
@@ -324,8 +325,13 @@ class Abyo:
     # remove duplicated values
     df_timeseries.drop_duplicates(subset=['pixel','year','lat','lon']+self.attributes, keep='last', inplace=True)
 
+    # add porcentage of occurrence and cloud
+    df_timeseries['pct_occurrence']   = (df_timeseries['occurrence']/(df_timeseries['occurrence']+df_timeseries['not_occurrence']))*100
+    df_timeseries['pct_cloud']        = (df_timeseries['cloud']/(df_timeseries['occurrence']+df_timeseries['not_occurrence']+df_timeseries['cloud']))*100
+    df_timeseries['instants']         = df_timeseries['occurrence']+df_timeseries['not_occurrence']+df_timeseries['cloud']
+
     # save modified dataframe to its original variable
-    self.df_timeseries = df_timeseries[self.df_columns]
+    self.df_timeseries = df_timeseries[df_columns]
 
     # garbagge collect
     del df_timeseries
@@ -464,10 +470,11 @@ class Abyo:
     yticks      = np.linspace(self.sample_lon_lat[0][0], self.sample_lon_lat[1][0], num=4)
 
     # colorbar tixks
-    colorbar_ticks_max          = math.ceil(int(df['occurrence'].max()/zoom))
+    #colorbar_ticks_max          = math.ceil(int(df['occurrence'].max()/zoom))
+    colorbar_ticks_max          = 100
     colorbar_ticks              = np.linspace(1, colorbar_ticks_max if colorbar_ticks_max > 1 else 2, num=5, dtype=int)
     colorbar_ticks_labels       = [str(l) for l in colorbar_ticks]
-    colorbar_ticks_labels[-1]   = str(colorbar_ticks_labels[-1])+"+"
+    colorbar_ticks_labels[-1]   = str(colorbar_ticks_labels[-1])
 
 
     ###############
@@ -490,7 +497,7 @@ class Abyo:
       ax = fig.add_subplot(rows,columns,i+1)
       ax.grid(True, linestyle='dashed', color='#909090', linewidth=0.1)
       ax.title.set_text(str(int(year)))
-      s = ax.scatter(df_year['lat'], df_year['lon'], s=0.1, c=df_year['occurrence'], cmap=plt.get_cmap('jet'))
+      s = ax.scatter(df_year['lat'], df_year['lon'], s=0.1, c=df_year['pct_occurrence'], cmap=plt.get_cmap('jet'))
       s.set_clim(colorbar_ticks[0], colorbar_ticks[-1])
       cbar = plt.colorbar(s, cax=make_axes_locatable(ax).append_axes("right", size="5%", pad=0), ticks=colorbar_ticks)
       cbar.ax.set_yticklabels(colorbar_ticks_labels)
@@ -526,7 +533,7 @@ class Abyo:
       ax = fig.add_subplot(rows,columns,i+1)
       ax.grid(True, linestyle='dashed', color='#909090', linewidth=0.1)
       ax.title.set_text(str(int(year)))
-      s = ax.scatter(df_year['lat'], df_year['lon'], s=0.1, c=df_year['cloud'], cmap=plt.get_cmap('Greys'))
+      s = ax.scatter(df_year['lat'], df_year['lon'], s=0.1, c=df_year['pct_cloud'], cmap=plt.get_cmap('Greys'))
       s.set_clim(colorbar_ticks[0], colorbar_ticks[-1])
       cbar = plt.colorbar(s, cax=make_axes_locatable(ax).append_axes("right", size="5%", pad=0), ticks=colorbar_ticks)
       cbar.ax.set_yticklabels(colorbar_ticks_labels)
@@ -563,7 +570,7 @@ class Abyo:
     for year in years_list:
       features = []
       for index, row in df[df['year']==year].iterrows():
-        features.append(geojson.Feature(geometry=geojson.Point((row['lat'], row['lon'])), properties={"occurrence": int(row['occurrence']), "cloud": int(row['cloud']), "year": int(row['year'])}))
+        features.append(geojson.Feature(geometry=geojson.Point((row['lat'], row['lon'])), properties={"occurrence": int(row['occurrence']), "not_occurrence": int(row['not_occurrence']), "pct_occurrence": int(row['pct_occurrence']), "cloud": int(row['cloud']), "pct_cloud": int(row['pct_cloud']), "year": int(row['year']), "instants": int(row['instants'])}))
       fc = geojson.FeatureCollection(features)
       f = open(folder+"/occurrences_"+str(int(year))+".json","w")
       geojson.dump(fc, f)
@@ -585,7 +592,7 @@ class Abyo:
       os.mkdir(folder)
 
     # select image attributes to be exported
-    attributes = ['occurrence_water', 'cloud_water']
+    attributes = ['occurrence_water', 'not_occurrence_water', 'cloud_water']
 
     # go through all the collection
     for date in self.dates_timeseries_interval:

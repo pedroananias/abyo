@@ -160,7 +160,7 @@ def get_sensor_collections(geometry: ee.Geometry, sensor: str = "landsat", dates
 
   # COPERNICUS/S2_SR
   if sensor == "sentinel":
-    collection          = ee.ImageCollection('COPERNICUS/S2_SR').filterBounds(geometry).filterMetadata('CLOUDY_PIXEL_PERCENTAGE','less_than', 70).filter(ee.Filter.lte('NODATA_PIXEL_PERCENTAGE',0)).sort('system:time_start', True).map(apply_masks_sentinel)
+    collection          = ee.ImageCollection('COPERNICUS/S2_SR').filterBounds(geometry).filter(ee.Filter.lte('NODATA_PIXEL_PERCENTAGE',0)).sort('system:time_start', True).map(apply_masks_sentinel)
     collection_water    = ee.ImageCollection('COPERNICUS/S2_SR').filterBounds(geometry).filterMetadata('CLOUDY_PIXEL_PERCENTAGE','less_than', 10).filter(ee.Filter.lte('NODATA_PIXEL_PERCENTAGE',0)).sort('system:time_start', True).map(apply_masks_sentinel)
 
   # Modis MOD09GA.006
@@ -170,25 +170,25 @@ def get_sensor_collections(geometry: ee.Geometry, sensor: str = "landsat", dates
 
   # Landsat-5/ETM
   elif sensor == "landsat5":
-    collection          = ee.ImageCollection('LANDSAT/LT05/C01/T1_SR').filterBounds(geometry).filterMetadata('CLOUD_COVER','less_than', 70).sort('system:time_start', True).map(apply_masks_landsat5)  
+    collection          = ee.ImageCollection('LANDSAT/LT05/C01/T1_SR').filterBounds(geometry).sort('system:time_start', True).map(apply_masks_landsat5)  
     collection_water    = ee.ImageCollection('GLCF/GLS_WATER').filterBounds(geometry)
 
   # Landsat-7/ETM+
   elif sensor == "landsat7":
-    collection          = ee.ImageCollection('LANDSAT/LE07/C01/T1_SR').filterBounds(geometry).filterMetadata('CLOUD_COVER','less_than', 70).sort('system:time_start', True).map(apply_masks_landsat7)  
+    collection          = ee.ImageCollection('LANDSAT/LE07/C01/T1_SR').filterBounds(geometry).sort('system:time_start', True).map(apply_masks_landsat7)  
     collection_water    = ee.ImageCollection('GLCF/GLS_WATER').filterBounds(geometry)
 
   # Landsat-5/7/8 - Merge
   elif sensor == "landsat578":
     
     # Landsat-5/ETM
-    collection5         = ee.ImageCollection('LANDSAT/LT05/C01/T1_SR').filterDate(get_sensor_params("landsat5")["start"],get_sensor_params("landsat5")["end"]).filterBounds(geometry).filterMetadata('CLOUD_COVER','less_than', 70).sort('system:time_start', True).select(["B1","B2","B3","B4","B5","B6","pixel_qa"]).map(apply_masks_landsat5)  
+    collection5         = ee.ImageCollection('LANDSAT/LT05/C01/T1_SR').filterDate(get_sensor_params("landsat5")["start"],get_sensor_params("landsat5")["end"]).filterBounds(geometry).sort('system:time_start', True).select(["B1","B2","B3","B4","B5","B6","pixel_qa"]).map(apply_masks_landsat5)  
     
     # Landsat-7/ETM+
-    collection7         = ee.ImageCollection('LANDSAT/LE07/C01/T1_SR').filterDate(get_sensor_params("landsat5")["end"],get_sensor_params("landsat")["start"]).filterBounds(geometry).filterMetadata('CLOUD_COVER','less_than', 70).sort('system:time_start', True).select(["B1","B2","B3","B4","B5","B6","pixel_qa"]).map(apply_masks_landsat7)  
+    collection7         = ee.ImageCollection('LANDSAT/LE07/C01/T1_SR').filterDate(get_sensor_params("landsat5")["end"],get_sensor_params("landsat")["start"]).filterBounds(geometry).sort('system:time_start', True).select(["B1","B2","B3","B4","B5","B6","pixel_qa"]).map(apply_masks_landsat7)  
     
     # Landsat-8/OLI
-    collection8         = ee.ImageCollection('LANDSAT/LC08/C01/T1_SR').filterBounds(geometry).filterMetadata('CLOUD_COVER','less_than', 70).sort('system:time_start', True).select(["B1","B2","B3","B4","B5","B6","pixel_qa"]).map(apply_masks_landsat)  
+    collection8         = ee.ImageCollection('LANDSAT/LC08/C01/T1_SR').filterBounds(geometry).sort('system:time_start', True).select(["B1","B2","B3","B4","B5","B6","pixel_qa"]).map(apply_masks_landsat)  
     
     # Landsat Merge
     collection          = collection8.merge(collection7.merge(collection5)).sort('system:time_start', True)
@@ -196,7 +196,7 @@ def get_sensor_collections(geometry: ee.Geometry, sensor: str = "landsat", dates
 
   # Landsat-8/OLI
   else:
-    collection          = ee.ImageCollection('LANDSAT/LC08/C01/T1_SR').filterBounds(geometry).filterMetadata('CLOUD_COVER','less_than', 70).sort('system:time_start', True).map(apply_masks_landsat)  
+    collection          = ee.ImageCollection('LANDSAT/LC08/C01/T1_SR').filterBounds(geometry).sort('system:time_start', True).map(apply_masks_landsat)  
     collection_water    = ee.ImageCollection('GLCF/GLS_WATER').filterBounds(geometry)
     
   # Filter dates
@@ -319,9 +319,10 @@ def apply_masks(image, params: dict):
   slope           = image.expression('((red - nir) / (c_red - c_nir)) * 1000',{'nir':image.select(params['nir']),'red':image.select(params['red']),'c_nir':params['c_nir'],'c_red':params['c_red']}).rename('slope').cast({"slope": "double"}) # Ogashawara, Li, and Moreno-Madriñán (2017)
   label           = slope.expression('((cloud == 1) ? -1 : (slope >= -0.05) ? 1 : 0)', {'slope': slope.select('slope'), 'cloud': cloud.select('cloud')}).rename('label')
   occurrence      = label.expression('(label == 1) ? 1 : 0', {'label': label.select('label')}).rename('occurrence')
+  not_occurrence  = label.expression('(label == 0) ? 1 : 0', {'label': label.select('label')}).rename('not_occurrence')
 
   # Create the bands to the image and return it
-  return image.addBands([water, water_nocloud, cloud, nocloud, ndvi, fai, slope, label, occurrence])
+  return image.addBands([water, water_nocloud, cloud, nocloud, ndvi, fai, slope, label, occurrence, not_occurrence])
 
 
 # Apply to a mask and return image with the new band

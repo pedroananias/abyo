@@ -8,10 +8,11 @@
 # ### Change History
 # - Version 1: Repository creation
 # - Version 2: Fixed cloud/cloud shadow pixel calculation for Landsat 5,7 and 8
+# - Version 3: Fixes to produce relative frequency ratio instead of raw number of occurrencies
 #########################################################################################################################################
 
 # ### Version
-version = "V2"
+version = "V3"
 
 
 
