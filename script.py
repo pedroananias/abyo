@@ -98,7 +98,7 @@ try:
   # ### ABYO execution
 
   # folder to save results from algorithm at
-  folder = folderRoot+'/'+dt.now().strftime("%Y%m%d_%H%M%S")+'[v='+str(version)+'-'+str(args.name)+',date_start='+str(args.date_start)+',date_end='+str(args.date_end)+']'
+  folder = folderRoot+'/'+dt.now().strftime("%Y%m%d_%H%M%S")+'[v='+str(version)+'-'+str(args.name)+',dstart='+str(args.date_start)+',dend='+str(args.date_end)+',i='+str(args.indice)+',it='+str(args.indice_threshold)+']'
   if not os.path.exists(folder):
     os.mkdir(folder)
 
