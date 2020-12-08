@@ -56,6 +56,10 @@ parser.add_argument('--name', dest='name', action='store', default="bbhr",
                    help="Place where to save generated files")
 parser.add_argument('--sensor', dest='sensor', action='store', default="landsat578",
                    help="Define which sensor will be used")
+parser.add_argument('--indice', dest='indice', action='store', default="slope",
+                   help="Define which indice will be used to determine algal blooms (NDVI, FAI, SABI or SLOPE")
+parser.add_argument('--indice_threshold', dest='indice_threshold', action='store', type=float, default=-0.05,
+                   help="Define which indice threshold will be used to determine algal blooms (NDVI>=-0.15, FAI>=-0.004, SABI>=-0.10 and SLOPE>=-0.05")
 parser.add_argument('--force_cache', dest='force_cache', action='store_true',
                    help="Force cache reseting to prevent image errors")
 
@@ -104,7 +108,9 @@ try:
                    date_end=dt.strptime(args.date_end, "%Y-%m-%d"),
                    sensor=args.sensor,
                    cache_path=folderCache, 
-                   force_cache=args.force_cache)
+                   force_cache=args.force_cache,
+                   indice=args.indice,
+                   indice_threshold=args.indice_threshold)
 
   # preprocessing
   abyo.process_timeseries_data()

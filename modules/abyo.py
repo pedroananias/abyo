@@ -82,10 +82,6 @@ class Abyo:
   # attributes used in timeseries
   attributes                  = ['cloud', 'occurrence', 'not_occurrence']
 
-  # selected indice
-  indice_selected             = "fai"
-  indice_threshold            = -0.004
-
   # dataframes
   df_columns                  = ['pixel', 'index', 'year', 'lat', 'lon']+attributes
   df_timeseries               = None
@@ -102,7 +98,9 @@ class Abyo:
                cache_path:        str           = None, 
                force_cache:       bool          = False,
                morph_op:          str           = None,
-               morph_op_iters:    int           = 1):
+               morph_op_iters:    int           = 1,
+               indice:            str           = "slope",
+               indice_threshold:  float         = -0.05):
     
     # get sensor parameters
     self.sensor_params  = gee.get_sensor_params(sensor)
@@ -123,8 +121,8 @@ class Abyo:
     self.morph_op_iters               = morph_op_iters
 
     # change GEE indice selected
-    gee.indice_selected               = self.indice_selected
-    gee.indice_threshold              = self.indice_threshold
+    gee.indice_selected               = indice
+    gee.indice_threshold              = indice_threshold
 
     # creating final sensor collection
     collection, collection_water      = gee.get_sensor_collections(geometry=self.geometry, sensor=self.sensor, dates=[dt.strftime(self.date_start, "%Y-%m-%d"), dt.strftime(self.date_end, "%Y-%m-%d")])
@@ -264,7 +262,7 @@ class Abyo:
 
   # get cache files for datte
   def get_cache_files(self, year: int):
-    prefix            = self.hash_string.encode()+self.lat_lon.encode()+self.sensor.encode()+str(self.morph_op).encode()+str(self.morph_op_iters).encode()+str(self.indice_selected).encode()+str(self.indice_threshold).encode()
+    prefix            = self.hash_string.encode()+self.lat_lon.encode()+self.sensor.encode()+str(self.morph_op).encode()+str(self.morph_op_iters).encode()+str(gee.indice_selected).encode()+str(gee.indice_threshold).encode()
     hash_image        = hashlib.md5(prefix+(str(year)+'original').encode())
     hash_timeseries   = hashlib.md5(prefix+(str(self.years_list[0])+str(self.years_list[-1])).encode())
     return [self.cache_path+'/'+hash_image.hexdigest(), self.cache_path+'/'+hash_timeseries.hexdigest()]
@@ -469,7 +467,6 @@ class Abyo:
     str_date    = str(int(min(years_list))) + ' to ' + str(int(max(years_list)))
 
     # number of columns
-    zoom        = 5
     columns     = 6 if len(years_list)>=6 else len(years_list)
     rows        = math.ceil(len(years_list)/columns)
     fig_height  = 16/columns
@@ -479,22 +476,25 @@ class Abyo:
     yticks      = np.linspace(self.sample_lon_lat[0][0], self.sample_lon_lat[1][0], num=4)
 
     # colorbar tixks
-    #colorbar_ticks_max          = math.ceil(int(df['occurrence'].max()/zoom))
     colorbar_ticks_max          = 100
     colorbar_ticks              = np.linspace(1, colorbar_ticks_max if colorbar_ticks_max > 1 else 2, num=5, dtype=int)
     colorbar_ticks_labels       = [str(l) for l in colorbar_ticks]
     colorbar_ticks_labels[-1]   = str(colorbar_ticks_labels[-1])
-
 
     ###############
     ### Yearly Occurrences
 
     # create the plot
     fig = plt.figure(figsize=(20,rows*fig_height), dpi=300)
-    fig.suptitle('Algal Bloom Yearly Occurrences  ('+str_date+')', fontsize=14, y=1.04)
+    fig.suptitle('% Algal Bloom Yearly Occurrences  ('+str_date+', '+str(gee.indice_selected).upper()+' >= '+str(gee.indice_threshold)+')', fontsize=14, y=1.04)
     fig.autofmt_xdate()
     plt.rc('xtick',labelsize=6)
     plt.rc('ytick',labelsize=6)
+
+    # marker size
+    multiplier  = math.ceil(self.sensor_params['scale']/100)
+    multiplier  = multiplier if multiplier >= 1 else 1
+    markersize  = (72./fig.dpi)*multiplier
 
     # go through each year
     for i, year in enumerate(years_list):
@@ -506,7 +506,7 @@ class Abyo:
       ax = fig.add_subplot(rows,columns,i+1)
       ax.grid(True, linestyle='dashed', color='#909090', linewidth=0.1)
       ax.title.set_text(str(int(year)))
-      s = ax.scatter(df_year['lat'], df_year['lon'], s=0.1, c=df_year['pct_occurrence'], cmap=plt.get_cmap('jet'))
+      s = ax.scatter(df_year['lat'], df_year['lon'], s=markersize, c=df_year['pct_occurrence'], cmap=plt.get_cmap('jet'))
       s.set_clim(colorbar_ticks[0], colorbar_ticks[-1])
       cbar = plt.colorbar(s, cax=make_axes_locatable(ax).append_axes("right", size="5%", pad=0), ticks=colorbar_ticks)
       cbar.ax.set_yticklabels(colorbar_ticks_labels)
@@ -527,7 +527,7 @@ class Abyo:
 
     # create the plot
     fig = plt.figure(figsize=(20,rows*fig_height), dpi=300)
-    fig.suptitle('Algal Bloom Yearly Cloud Occurrences  ('+str_date+')', fontsize=14, y=1.04)
+    fig.suptitle('% Algal Bloom Yearly Cloud Occurrences  ('+str_date+')', fontsize=14, y=1.04)
     fig.autofmt_xdate()
     plt.rc('xtick',labelsize=6)
     plt.rc('ytick',labelsize=6)
@@ -542,7 +542,7 @@ class Abyo:
       ax = fig.add_subplot(rows,columns,i+1)
       ax.grid(True, linestyle='dashed', color='#909090', linewidth=0.1)
       ax.title.set_text(str(int(year)))
-      s = ax.scatter(df_year['lat'], df_year['lon'], s=0.1, c=df_year['pct_cloud'], cmap=plt.get_cmap('Greys'))
+      s = ax.scatter(df_year['lat'], df_year['lon'], s=markersize, c=df_year['pct_cloud'], cmap=plt.get_cmap('Greys'))
       s.set_clim(colorbar_ticks[0], colorbar_ticks[-1])
       cbar = plt.colorbar(s, cax=make_axes_locatable(ax).append_axes("right", size="5%", pad=0), ticks=colorbar_ticks)
       cbar.ax.set_yticklabels(colorbar_ticks_labels)
