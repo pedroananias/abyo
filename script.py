@@ -9,10 +9,11 @@
 # - Version 1: Repository creation
 # - Version 2: Fixed cloud/cloud shadow pixel calculation for Landsat 5,7 and 8
 # - Version 3: Fixes to produce relative frequency ratio instead of raw number of occurrencies
+# - Version 4: Changed to enable mappig from Modis images and indices FAI and NDVI
 #########################################################################################################################################
 
 # ### Version
-version = "V3"
+version = "V4"
 
 
 
@@ -53,6 +54,8 @@ parser.add_argument('--date_end', dest='date_end', action='store', default="2001
                    help="Date to end time series")
 parser.add_argument('--name', dest='name', action='store', default="bbhr",
                    help="Place where to save generated files")
+parser.add_argument('--sensor', dest='sensor', action='store', default="landsat578",
+                   help="Define which sensor will be used")
 parser.add_argument('--force_cache', dest='force_cache', action='store_true',
                    help="Force cache reseting to prevent image errors")
 
@@ -99,7 +102,7 @@ try:
   abyo = abyo.Abyo(lat_lon=args.lat_lon,
                    date_start=dt.strptime(args.date_start, "%Y-%m-%d"),
                    date_end=dt.strptime(args.date_end, "%Y-%m-%d"),
-                   sensor="landsat578",
+                   sensor=args.sensor,
                    cache_path=folderCache, 
                    force_cache=args.force_cache)
 

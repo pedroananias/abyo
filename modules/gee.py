@@ -15,8 +15,11 @@ from datetime import timedelta as td
 
 # Configurations
 # Defines the type of dummy value used
-dummy = -99999
+dummy               = -99999
 
+# Define the indice that it will be used
+indice_selected     = "fai"
+indice_threshold    = -0.004
 
 # Return the parameters of each sensor
 def get_sensor_params(sensor: str):
@@ -160,7 +163,7 @@ def get_sensor_collections(geometry: ee.Geometry, sensor: str = "landsat", dates
 
   # COPERNICUS/S2_SR
   if sensor == "sentinel":
-    collection          = ee.ImageCollection('COPERNICUS/S2_SR').filterBounds(geometry).filter(ee.Filter.lte('NODATA_PIXEL_PERCENTAGE',0)).sort('system:time_start', True).map(apply_masks_sentinel)
+    collection          = ee.ImageCollection('COPERNICUS/S2_SR').filterBounds(geometry).filter(ee.Filter.lte('NODATA_PIXEL_PERCENTAGE','less_than', 100)).sort('system:time_start', True).map(apply_masks_sentinel)
     collection_water    = ee.ImageCollection('COPERNICUS/S2_SR').filterBounds(geometry).filterMetadata('CLOUDY_PIXEL_PERCENTAGE','less_than', 10).filter(ee.Filter.lte('NODATA_PIXEL_PERCENTAGE',0)).sort('system:time_start', True).map(apply_masks_sentinel)
 
   # Modis MOD09GA.006
@@ -317,12 +320,13 @@ def apply_masks(image, params: dict):
   ndvi            = image.expression('(nir - red) / (nir + red)',{'nir':image.select(params['nir']),'red':image.select(params['red'])}).rename('ndvi')
   fai             = image.expression('nir - (red + (swir - red) * ((c_nir - c_red) / (c_swir - c_red)))',{'swir':image.select(params['swir']),'nir':image.select(params['nir']),'red':image.select(params['red']),'c_nir':params['c_nir'],'c_red':params['c_red'],'c_swir':params['c_swir']}).rename('fai') # Oyama et al (2015)
   slope           = image.expression('((red - nir) / (c_red - c_nir)) * 1000',{'nir':image.select(params['nir']),'red':image.select(params['red']),'c_nir':params['c_nir'],'c_red':params['c_red']}).rename('slope').cast({"slope": "double"}) # Ogashawara, Li, and Moreno-Madriñán (2017)
-  label           = slope.expression('((cloud == 1) ? -1 : (slope >= -0.05) ? 1 : 0)', {'slope': slope.select('slope'), 'cloud': cloud.select('cloud')}).rename('label')
+  sabi            = image.expression('(nir - red) / (blue + green)',{'nir':image.select(params['nir']),'red':image.select(params['red']),'blue':image.select(params['blue']),'green':image.select(params['green'])}).rename('sabi').cast({"sabi": "double"}) # Alawadi (2010)
+  label           = image.expression('((cloud == 1) ? -1 : ('+str(indice_selected)+' >= '+str(indice_threshold)+') ? 1 : 0)', {'ndvi': ndvi.select('ndvi'), 'fai': fai.select('fai'), 'slope': slope.select('slope'), 'sabi': sabi.select('sabi'), 'cloud': cloud.select('cloud')}).rename('label')
   occurrence      = label.expression('(label == 1) ? 1 : 0', {'label': label.select('label')}).rename('occurrence')
   not_occurrence  = label.expression('(label == 0) ? 1 : 0', {'label': label.select('label')}).rename('not_occurrence')
 
   # Create the bands to the image and return it
-  return image.addBands([water, water_nocloud, cloud, nocloud, ndvi, fai, slope, label, occurrence, not_occurrence])
+  return image.addBands([water, water_nocloud, cloud, nocloud, label, occurrence, not_occurrence])
 
 
 # Apply to a mask and return image with the new band
