@@ -477,7 +477,7 @@ class Abyo:
 
     # colorbar tixks
     colorbar_ticks_max          = 100
-    colorbar_ticks              = np.linspace(1, colorbar_ticks_max if colorbar_ticks_max > 1 else 2, num=5, dtype=int)
+    colorbar_ticks              = np.linspace(0, colorbar_ticks_max if colorbar_ticks_max > 1 else 2, num=5, dtype=int)
     colorbar_ticks_labels       = [str(l) for l in colorbar_ticks]
     colorbar_ticks_labels[-1]   = str(colorbar_ticks_labels[-1])
 
@@ -497,6 +497,7 @@ class Abyo:
     markersize  = (72./fig.dpi)*multiplier
 
     # go through each year
+    images = []
     for i, year in enumerate(years_list):
 
       # filter year data
@@ -508,13 +509,16 @@ class Abyo:
       ax.title.set_text(str(int(year)))
       s = ax.scatter(df_year['lat'], df_year['lon'], s=markersize, c=df_year['pct_occurrence'], cmap=plt.get_cmap('jet'))
       s.set_clim(colorbar_ticks[0], colorbar_ticks[-1])
-      cbar = plt.colorbar(s, cax=make_axes_locatable(ax).append_axes("right", size="5%", pad=0), ticks=colorbar_ticks)
-      cbar.ax.set_yticklabels(colorbar_ticks_labels)
       ax.margins(x=0,y=0)
       ax.set_xticks(xticks)
       ax.set_yticks(yticks)
       ax.xaxis.set_major_formatter(FormatStrFormatter('%.2f'))
       ax.yaxis.set_major_formatter(FormatStrFormatter('%.2f'))
+      images.append(s)
+
+    # figure add cmap
+    cbar = fig.colorbar(images[-1], cax=fig.add_axes([0.6, -0.05, 0.39, 0.05]), ticks=colorbar_ticks, orientation='horizontal')
+    cbar.set_label("% of occurrence")
 
     # save it to file
     plt.subplots_adjust(wspace=0.4, hspace=0.4)
@@ -533,6 +537,7 @@ class Abyo:
     plt.rc('ytick',labelsize=6)
 
     # go through each year
+    images = []
     for i, year in enumerate(years_list):
 
       # filter year data
@@ -551,6 +556,11 @@ class Abyo:
       ax.set_yticks(yticks)
       ax.xaxis.set_major_formatter(FormatStrFormatter('%.2f'))
       ax.yaxis.set_major_formatter(FormatStrFormatter('%.2f'))
+      images.append(s)
+
+    # figure add cmap
+    cbar = fig.colorbar(images[-1], cax=fig.add_axes([0.6, -0.05, 0.39, 0.05]), ticks=colorbar_ticks, orientation='horizontal')
+    cbar.set_label("% of occurrence")
 
     # save it to file
     plt.subplots_adjust(wspace=0.4, hspace=0.4)
