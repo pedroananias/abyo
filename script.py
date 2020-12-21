@@ -59,7 +59,7 @@ parser.add_argument('--sensor', dest='sensor', action='store', default="landsat5
 parser.add_argument('--indice', dest='indice', action='store', default="slope",
                    help="Define which indice will be used to determine algal blooms (NDVI, FAI, SABI or SLOPE")
 parser.add_argument('--indice_threshold', dest='indice_threshold', action='store', type=float, default=-0.05,
-                   help="Define which indice threshold will be used to determine algal blooms (NDVI>=-0.15, FAI>=-0.004, SABI>=-0.10 and SLOPE>=-0.05")
+                   help="Define which indice threshold will be used to determine algal blooms (NDVI>-0.15, FAI>-0.004, SABI>-0.10 and SLOPE>-0.05")
 parser.add_argument('--force_cache', dest='force_cache', action='store_true',
                    help="Force cache reseting to prevent image errors")
 
@@ -122,7 +122,7 @@ try:
   abyo.save_occurrences_plot(df=abyo.df_timeseries, folder=folder)
 
   # save geojson occurrences and clouds
-  abyo.save_occurrences_geojson(df=abyo.df_timeseries, folder=folder+"/geojson")
+  abyo.save_occurrences_geojson(df=abyo.df_timeseries, folder=folder)
 
   # save images to Local Folder (first try, based on image size) or to your Google Drive
   #abyo.save_collection_tiff(folder=folder+"/tiff", folderName=args.name+"_"+version, rgb=False)

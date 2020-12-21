@@ -549,8 +549,6 @@ class Abyo:
       ax.title.set_text(str(int(year)))
       s = ax.scatter(df_year['lat'], df_year['lon'], s=markersize, c=df_year['pct_cloud'], cmap=plt.get_cmap('Greys'))
       s.set_clim(colorbar_ticks[0], colorbar_ticks[-1])
-      cbar = plt.colorbar(s, cax=make_axes_locatable(ax).append_axes("right", size="5%", pad=0), ticks=colorbar_ticks)
-      cbar.ax.set_yticklabels(colorbar_ticks_labels)
       ax.margins(x=0,y=0)
       ax.set_xticks(xticks)
       ax.set_yticks(yticks)
@@ -585,15 +583,23 @@ class Abyo:
     # years list
     years_list = df.groupby('year')['year'].agg('mean').values
 
+    # # save occurrences data
+    # for year in years_list:
+    #   features = []
+    #   for index, row in df[df['year']==year].iterrows():
+    #     features.append(geojson.Feature(geometry=geojson.Point((row['lat'], row['lon'])), properties={"occurrence": int(row['occurrence']), "not_occurrence": int(row['not_occurrence']), "pct_occurrence": int(row['pct_occurrence']), "cloud": int(row['cloud']), "pct_cloud": int(row['pct_cloud']), "year": int(row['year']), "instants": int(row['instants'])}))
+    #   fc = geojson.FeatureCollection(features)
+    #   f = open(folder+"/occurrences_"+str(int(year))+".json","w")
+    #   geojson.dump(fc, f)
+    #   f.close()
     # save occurrences data
-    for year in years_list:
-      features = []
-      for index, row in df[df['year']==year].iterrows():
-        features.append(geojson.Feature(geometry=geojson.Point((row['lat'], row['lon'])), properties={"occurrence": int(row['occurrence']), "not_occurrence": int(row['not_occurrence']), "pct_occurrence": int(row['pct_occurrence']), "cloud": int(row['cloud']), "pct_cloud": int(row['pct_cloud']), "year": int(row['year']), "instants": int(row['instants'])}))
-      fc = geojson.FeatureCollection(features)
-      f = open(folder+"/occurrences_"+str(int(year))+".json","w")
-      geojson.dump(fc, f)
-      f.close()
+    features = []
+    for index, row in df.iterrows():
+      features.append(geojson.Feature(geometry=geojson.Point((row['lat'], row['lon'])), properties={"occurrence": int(row['occurrence']), "not_occurrence": int(row['not_occurrence']), "pct_occurrence": int(row['pct_occurrence']), "cloud": int(row['cloud']), "pct_cloud": int(row['pct_cloud']), "year": int(row['year']), "instants": int(row['instants'])}))
+    fc = geojson.FeatureCollection(features)
+    f = open(folder+"/occurrences.json","w")
+    geojson.dump(fc, f)
+    f.close()
 
 
   # save a collection in tiff (zip) to folder (time series)

@@ -50,11 +50,11 @@ def get_sensor_params(sensor: str):
       'blue': 'sur_refl_b03',
       'red': 'sur_refl_b01',
       'green': 'sur_refl_b04',
-      'swir': 'sur_refl_b06',
+      'swir': 'sur_refl_b05',
       'nir': 'sur_refl_b02',
       'c_nir': 858.5,
       'c_red': 645.0,
-      'c_swir': 1640.0,
+      'c_swir': 1240.0,
       'scale': 500,
       'start': dt.strptime("2000-02-24", "%Y-%m-%d"),
       'property_id': 'system:id'
@@ -168,7 +168,7 @@ def get_sensor_collections(geometry: ee.Geometry, sensor: str = "landsat", dates
 
   # Modis MOD09GA.006
   elif sensor == "modis":
-    collection          = ee.ImageCollection('MODIS/006/MOD09GA').filterBounds(geometry).sort('system:time_start', True).map(apply_masks_modis)
+    collection          = ee.ImageCollection('MODIS/006/MOD09GA').filterBounds(geometry).sort('system:time_start', True).map(apply_waterleaving_reflectance_correction_modis).map(apply_masks_modis)
     collection_water    = ee.ImageCollection('MODIS/006/MOD44W').filterBounds(geometry)
 
   # Landsat-5/ETM
@@ -306,6 +306,30 @@ def apply_masks_modis(image):
   return apply_masks(image, get_sensor_params("modis"))
 
 
+# Modis MOD09GA.006 Water-leaving reflectance correction
+# Rc(i) = R(i) - min(R(NIR):R(SWIR)) (Jia et al. 2019)
+def apply_waterleaving_reflectance_correction_modis(image):
+
+  # select bands (NIR:SWIR)
+  swir1 = image.select('sur_refl_b05')
+  swir2 = image.select('sur_refl_b06')
+  swir3 = image.select('sur_refl_b07')
+
+  # compute min
+  min_swir1_swir2 = swir1.min(swir2)
+  wl_re_corr = min_swir1_swir2.min(swir3).rename('wl_re_corr')
+
+  # apply correction RED, NIR and SWIR
+  red     = image.expression('red - wl_re_corr', { 'red': image.select('sur_refl_b01'), 'wl_re_corr': wl_re_corr.select('wl_re_corr')}).rename('sur_refl_b01')
+  green   = image.expression('green - wl_re_corr', { 'green': image.select('sur_refl_b04'), 'wl_re_corr': wl_re_corr.select('wl_re_corr')}).rename('sur_refl_b04')
+  blue    = image.expression('blue - wl_re_corr', { 'blue': image.select('sur_refl_b03'), 'wl_re_corr': wl_re_corr.select('wl_re_corr')}).rename('sur_refl_b03')
+  nir     = image.expression('nir - wl_re_corr', { 'nir': image.select('sur_refl_b02'), 'wl_re_corr': wl_re_corr.select('wl_re_corr')}).rename('sur_refl_b02')
+  swir    = image.expression('swir - wl_re_corr', { 'swir': image.select('sur_refl_b05'), 'wl_re_corr': wl_re_corr.select('wl_re_corr')}).rename('sur_refl_b05')
+
+  # add new band
+  return image.addBands([red,green,blue,nir,swir], overwrite=True)
+
+
 # Apply indexes and apply water masks, cloud
 def apply_masks(image, params: dict):
 
@@ -317,11 +341,11 @@ def apply_masks(image, params: dict):
   water_nocloud   = water.updateMask(nocloud).rename('water_nocloud')
       
   # Apply the indexes available in the image
-  ndvi            = image.expression('(nir - red) / (nir + red)',{'nir':image.select(params['nir']),'red':image.select(params['red'])}).rename('ndvi')
-  fai             = image.expression('nir - (red + (swir - red) * ((c_nir - c_red) / (c_swir - c_red)))',{'swir':image.select(params['swir']),'nir':image.select(params['nir']),'red':image.select(params['red']),'c_nir':params['c_nir'],'c_red':params['c_red'],'c_swir':params['c_swir']}).rename('fai') # Oyama et al (2015)
-  slope           = image.expression('((red - nir) / (c_red - c_nir)) * 1000',{'nir':image.select(params['nir']),'red':image.select(params['red']),'c_nir':params['c_nir'],'c_red':params['c_red']}).rename('slope').cast({"slope": "double"}) # Ogashawara, Li, and Moreno-Madriñán (2017)
-  sabi            = image.expression('(nir - red) / (blue + green)',{'nir':image.select(params['nir']),'red':image.select(params['red']),'blue':image.select(params['blue']),'green':image.select(params['green'])}).rename('sabi').cast({"sabi": "double"}) # Alawadi (2010)
-  label           = image.expression('((cloud == 1) ? -1 : ('+str(indice_selected)+' >= '+str(indice_threshold)+') ? 1 : 0)', {'ndvi': ndvi.select('ndvi'), 'fai': fai.select('fai'), 'slope': slope.select('slope'), 'sabi': sabi.select('sabi'), 'cloud': cloud.select('cloud')}).rename('label')
+  ndvi            = image.expression('(nir - red) / (nir + red)',{'nir':image.select(params['nir']).multiply(0.0001),'red':image.select(params['red']).multiply(0.0001)}).rename('ndvi').cast({"ndvi": "double"})
+  fai             = image.expression('nir - (red + (swir - red) * ((c_nir - c_red) / (c_swir - c_red)))',{'swir':image.select(params['swir']).multiply(0.0001),'nir':image.select(params['nir']).multiply(0.0001),'red':image.select(params['red']).multiply(0.0001),'c_nir':params['c_nir'],'c_red':params['c_red'],'c_swir':params['c_swir']}).rename('fai').cast({"fai": "double"}) # Oyama et al (2015)
+  slope           = image.expression('((red - nir) / (c_red - c_nir)) * 1000',{'nir':image.select(params['nir']).multiply(0.0001),'red':image.select(params['red']).multiply(0.0001),'c_nir':params['c_nir'],'c_red':params['c_red']}).rename('slope').cast({"slope": "double"}) # Ogashawara, Li, and Moreno-Madriñán (2017)
+  sabi            = image.expression('(nir - red) / (blue + green)',{'nir':image.select(params['nir']).multiply(0.0001),'red':image.select(params['red']).multiply(0.0001),'blue':image.select(params['blue']).multiply(0.0001),'green':image.select(params['green']).multiply(0.0001)}).rename('sabi').cast({"sabi": "double"}) # Alawadi (2010)
+  label           = image.expression('((cloud == 1) ? -1 : ('+str(indice_selected)+' > '+str(indice_threshold)+') ? 1 : 0)', {'ndvi': ndvi.select('ndvi'), 'fai': fai.select('fai'), 'slope': slope.select('slope'), 'sabi': sabi.select('sabi'), 'cloud': cloud.select('cloud')}).rename('label')
   occurrence      = label.expression('(label == 1) ? 1 : 0', {'label': label.select('label')}).rename('occurrence')
   not_occurrence  = label.expression('(label == 0) ? 1 : 0', {'label': label.select('label')}).rename('not_occurrence')
 
