@@ -4,17 +4,11 @@
 #########################################################################################################################################
 # ### ABYO - Algal Bloom Yearly Occurences
 # ### Script responsible for executing Algal Bloom Yearly Occurences in a region of interest
-#                
-# ### Change History
-# - Version 1: Repository creation
-# - Version 2: Fixed cloud/cloud shadow pixel calculation for Landsat 5,7 and 8
-# - Version 3: Fixes to produce relative frequency ratio instead of raw number of occurrencies
-# - Version 4: Changed to enable mappig from Modis images and indices FAI and NDVI
+# ### Python 3.7 64Bits is required!
 #########################################################################################################################################
 
 # ### Version
-version = "V4"
-
+version = "V5"
 
 
 # ### Module imports
@@ -56,10 +50,8 @@ parser.add_argument('--name', dest='name', action='store', default="bbhr",
                    help="Place where to save generated files")
 parser.add_argument('--sensor', dest='sensor', action='store', default="landsat578",
                    help="Define which sensor will be used")
-parser.add_argument('--indice', dest='indice', action='store', default="slope",
-                   help="Define which indice will be used to determine algal blooms (NDVI, FAI, SABI or SLOPE")
-parser.add_argument('--indice_threshold', dest='indice_threshold', action='store', type=float, default=-0.05,
-                   help="Define which indice threshold will be used to determine algal blooms (NDVI>-0.15, FAI>-0.004, SABI>-0.10 and SLOPE>-0.05")
+parser.add_argument('--indice', dest='indice', action='store', default="mndwi,ndvi,fai,sabi",
+                   help="Define which indice will be used to determine algal blooms (mndwi, ndvi, fai, sabi e/ou slope)")
 parser.add_argument('--force_cache', dest='force_cache', action='store_true',
                    help="Force cache reseting to prevent image errors")
 
@@ -98,7 +90,7 @@ try:
   # ### ABYO execution
 
   # folder to save results from algorithm at
-  folder = folderRoot+'/'+dt.now().strftime("%Y%m%d_%H%M%S")+'[v='+str(version)+'-'+str(args.name)+',dstart='+str(args.date_start)+',dend='+str(args.date_end)+',i='+str(args.indice)+',it='+str(args.indice_threshold)+']'
+  folder = folderRoot+'/'+dt.now().strftime("%Y%m%d_%H%M%S")+'[v='+str(version)+'-'+str(args.name)+',dstart='+str(args.date_start)+',dend='+str(args.date_end)+',i='+str(args.indice)+']'
   if not os.path.exists(folder):
     os.mkdir(folder)
 
@@ -109,8 +101,7 @@ try:
                    sensor=args.sensor,
                    cache_path=folderCache, 
                    force_cache=args.force_cache,
-                   indice=args.indice,
-                   indice_threshold=args.indice_threshold)
+                   indice=args.indice)
 
   # preprocessing
   abyo.process_timeseries_data()

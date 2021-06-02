@@ -4,9 +4,6 @@
 #########################################################################################################################################
 # ### ABYO - Algal Bloom Yearly Occurences
 # ### Module responsible for extracting Algal Bloom Yearly Occurences in a region of interest
-#                
-# ### Change History
-# - Version 1: Repository creation
 #########################################################################################################################################
 
 # Dependencies
@@ -99,8 +96,7 @@ class Abyo:
                force_cache:       bool          = False,
                morph_op:          str           = None,
                morph_op_iters:    int           = 1,
-               indice:            str           = "slope",
-               indice_threshold:  float         = -0.05):
+               indice:            str           = "mndwi,ndvi,fai,sabi"):
     
     # get sensor parameters
     self.sensor_params  = gee.get_sensor_params(sensor)
@@ -122,7 +118,6 @@ class Abyo:
 
     # change GEE indice selected
     gee.indice_selected               = indice
-    gee.indice_threshold              = indice_threshold
 
     # creating final sensor collection
     collection, collection_water      = gee.get_sensor_collections(geometry=self.geometry, sensor=self.sensor, dates=[dt.strftime(self.date_start, "%Y-%m-%d"), dt.strftime(self.date_end, "%Y-%m-%d")])
@@ -262,7 +257,7 @@ class Abyo:
 
   # get cache files for datte
   def get_cache_files(self, year: int):
-    prefix            = self.hash_string.encode()+self.lat_lon.encode()+self.sensor.encode()+str(self.morph_op).encode()+str(self.morph_op_iters).encode()+str(gee.indice_selected).encode()+str(gee.indice_threshold).encode()
+    prefix            = self.hash_string.encode()+self.lat_lon.encode()+self.sensor.encode()+str(self.morph_op).encode()+str(self.morph_op_iters).encode()+str(gee.indice_selected).encode()
     hash_image        = hashlib.md5(prefix+(str(year)+'original').encode())
     hash_timeseries   = hashlib.md5(prefix+(str(self.years_list[0])+str(self.years_list[-1])).encode())
     return [self.cache_path+'/'+hash_image.hexdigest(), self.cache_path+'/'+hash_timeseries.hexdigest()]
@@ -486,7 +481,7 @@ class Abyo:
 
     # create the plot
     fig = plt.figure(figsize=(20,rows*fig_height), dpi=300)
-    fig.suptitle('% Algal Bloom Yearly Occurrences  ('+str_date+', '+str(gee.indice_selected).upper()+' >= '+str(gee.indice_threshold)+')', fontsize=14, y=1.04)
+    fig.suptitle('% Algal Bloom Yearly Occurrences  ('+str_date+', '+str(gee.indice_selected).upper()+')', fontsize=14, y=1.04)
     fig.autofmt_xdate()
     plt.rc('xtick',labelsize=6)
     plt.rc('ytick',labelsize=6)

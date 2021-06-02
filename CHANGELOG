@@ -1,0 +1,21 @@
+#########################################################################################################################################
+# ### ABYO - Algal Bloom Yearly Occurences
+# ### Script responsible for executing Algal Bloom Yearly Occurences in a region of interest
+# ### Python 3.7 64Bits is required!
+#########################################################################################################################################
+
+### Change History
+Version 1: 
+- Repository creation
+
+Version 2: 
+- Fixed cloud/cloud shadow pixel calculation for Landsat 5,7 and 8
+
+Version 3:
+- Fixes to produce relative frequency ratio instead of raw number of occurrencies
+
+Version 4: 
+- Changed to enable mappig from Modis images and indices FAI and NDVI
+
+Version 5: 
+- Changed indice threshold modelling process

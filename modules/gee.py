@@ -10,6 +10,7 @@
 import ee
 import numpy as np
 import traceback
+import sys
 from datetime import datetime as dt
 from datetime import timedelta as td
 
@@ -18,8 +19,8 @@ from datetime import timedelta as td
 dummy               = -99999
 
 # Define the indice that it will be used
-indice_selected     = "fai"
-indice_threshold    = -0.004
+indice_selected     = "mndwi,ndvi,sabi,fai"
+indice_thresholds   = {'mndwi': 0.0, 'ndvi': -0.15, 'sabi': -0.10, 'fai': -0.004, 'slope': -0.05}
 
 # Return the parameters of each sensor
 def get_sensor_params(sensor: str):
@@ -339,13 +340,21 @@ def apply_masks(image, params: dict):
   cloud           = ee.Image(1).updateMask(mask_cloud_shadow(image, params['sensor']).Not()).rename('cloud')
   nocloud         = blank.updateMask(mask_cloud_shadow(image, params['sensor'])).rename('nocloud')
   water_nocloud   = water.updateMask(nocloud).rename('water_nocloud')
+
+  # conditions
+  array_condition = []
+  for i in indice_selected.split(","):
+    operator = ">" if not i == "mndwi" else "<"
+    array_condition.append("("+i+" "+operator+" "+str(indice_thresholds[i])+")")
+  condition_index = " and ".join(array_condition)
       
   # Apply the indexes available in the image
+  mndwi           = image.expression('(green - swir) / (green + swir)',{'swir':image.select(params['swir']).multiply(0.0001),'green':image.select(params['green']).multiply(0.0001)}).rename('mndwi').cast({"mndwi": "double"}) # Xu (2006)
   ndvi            = image.expression('(nir - red) / (nir + red)',{'nir':image.select(params['nir']).multiply(0.0001),'red':image.select(params['red']).multiply(0.0001)}).rename('ndvi').cast({"ndvi": "double"})
   fai             = image.expression('nir - (red + (swir - red) * ((c_nir - c_red) / (c_swir - c_red)))',{'swir':image.select(params['swir']).multiply(0.0001),'nir':image.select(params['nir']).multiply(0.0001),'red':image.select(params['red']).multiply(0.0001),'c_nir':params['c_nir'],'c_red':params['c_red'],'c_swir':params['c_swir']}).rename('fai').cast({"fai": "double"}) # Oyama et al (2015)
   slope           = image.expression('((red - nir) / (c_red - c_nir)) * 1000',{'nir':image.select(params['nir']).multiply(0.0001),'red':image.select(params['red']).multiply(0.0001),'c_nir':params['c_nir'],'c_red':params['c_red']}).rename('slope').cast({"slope": "double"}) # Ogashawara, Li, and Moreno-Madriñán (2017)
   sabi            = image.expression('(nir - red) / (blue + green)',{'nir':image.select(params['nir']).multiply(0.0001),'red':image.select(params['red']).multiply(0.0001),'blue':image.select(params['blue']).multiply(0.0001),'green':image.select(params['green']).multiply(0.0001)}).rename('sabi').cast({"sabi": "double"}) # Alawadi (2010)
-  label           = image.expression('((cloud == 1) ? -1 : ('+str(indice_selected)+' > '+str(indice_threshold)+') ? 1 : 0)', {'ndvi': ndvi.select('ndvi'), 'fai': fai.select('fai'), 'slope': slope.select('slope'), 'sabi': sabi.select('sabi'), 'cloud': cloud.select('cloud')}).rename('label')
+  label           = image.expression('((cloud == 1) ? -1 : ('+condition_index+') ? 1 : 0)', {'ndvi': ndvi.select('ndvi'), 'fai': fai.select('fai'), 'slope': slope.select('slope'), 'sabi': sabi.select('sabi'), 'mndwi': mndwi.select('mndwi'), 'cloud': cloud.select('cloud')}).rename('label')
   occurrence      = label.expression('(label == 1) ? 1 : 0', {'label': label.select('label')}).rename('occurrence')
   not_occurrence  = label.expression('(label == 0) ? 1 : 0', {'label': label.select('label')}).rename('not_occurrence')
 
