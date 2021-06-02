@@ -22,7 +22,7 @@ LAT_LON="-48.84725671390528,-22.04547298853004,-47.71712046185493,-23.2134746304
 # EXECUTIONS
 for indice in "${INDICES[@]}"
 do
-	echo "$PYTHON $BASEDIR/$SCRIPT --lat_lon=$LAT_LON --date_start=1985-01-01 --date_end=2001-12-31 --indice=$indice"
+	eval "$PYTHON $BASEDIR/$SCRIPT --lat_lon=$LAT_LON --date_start=1985-01-01 --date_end=2001-12-31 --indice=$indice"
 done
 
 ############################################################################################
@@ -35,7 +35,7 @@ LAT_LON="-48.84725671390528,-22.04547298853004,-47.71712046185493,-23.2134746304
 # EXECUTIONS
 for indice in "${INDICES[@]}"
 do
-	echo "$PYTHON $BASEDIR/$SCRIPT --lat_lon=$LAT_LON --date_start=2002-01-01 --date_end=2018-12-31 --indice=$indice"
+	eval "$PYTHON $BASEDIR/$SCRIPT --lat_lon=$LAT_LON --date_start=2002-01-01 --date_end=2018-12-31 --indice=$indice"
 done
 
 ############################################################################################
