@@ -77,7 +77,7 @@ class Abyo:
   collection_yearly           = None
 
   # attributes used in timeseries
-  attributes                  = ['cloud', 'occurrence', 'not_occurrence']
+  attributes                  = ['cloud', 'label', 'occurrence', 'not_occurrence']
 
   # dataframes
   df_columns                  = ['pixel', 'index', 'year', 'lat', 'lon']+attributes
@@ -96,7 +96,8 @@ class Abyo:
                force_cache:       bool          = False,
                morph_op:          str           = None,
                morph_op_iters:    int           = 1,
-               indice:            str           = "mndwi,ndvi,fai,sabi"):
+               indice:            str           = "mndwi,ndvi,fai,sabi,slope",
+               min_occurrence:    int           = 4):
     
     # get sensor parameters
     self.sensor_params  = gee.get_sensor_params(sensor)
@@ -118,6 +119,7 @@ class Abyo:
 
     # change GEE indice selected
     gee.indice_selected               = indice
+    gee.min_occurrence                = min_occurrence
 
     # creating final sensor collection
     collection, collection_water      = gee.get_sensor_collections(geometry=self.geometry, sensor=self.sensor, dates=[dt.strftime(self.date_start, "%Y-%m-%d"), dt.strftime(self.date_end, "%Y-%m-%d")])
@@ -579,15 +581,6 @@ class Abyo:
     years_list = df.groupby('year')['year'].agg('mean').values
 
     # # save occurrences data
-    # for year in years_list:
-    #   features = []
-    #   for index, row in df[df['year']==year].iterrows():
-    #     features.append(geojson.Feature(geometry=geojson.Point((row['lat'], row['lon'])), properties={"occurrence": int(row['occurrence']), "not_occurrence": int(row['not_occurrence']), "pct_occurrence": int(row['pct_occurrence']), "cloud": int(row['cloud']), "pct_cloud": int(row['pct_cloud']), "year": int(row['year']), "instants": int(row['instants'])}))
-    #   fc = geojson.FeatureCollection(features)
-    #   f = open(folder+"/occurrences_"+str(int(year))+".json","w")
-    #   geojson.dump(fc, f)
-    #   f.close()
-    # save occurrences data
     features = []
     for index, row in df.iterrows():
       features.append(geojson.Feature(geometry=geojson.Point((row['lat'], row['lon'])), properties={"occurrence": int(row['occurrence']), "not_occurrence": int(row['not_occurrence']), "pct_occurrence": int(row['pct_occurrence']), "cloud": int(row['cloud']), "pct_cloud": int(row['pct_cloud']), "year": int(row['year']), "instants": int(row['instants'])}))

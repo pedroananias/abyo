@@ -50,8 +50,10 @@ parser.add_argument('--name', dest='name', action='store', default="bbhr",
                    help="Place where to save generated files")
 parser.add_argument('--sensor', dest='sensor', action='store', default="landsat578",
                    help="Define which sensor will be used")
-parser.add_argument('--indice', dest='indice', action='store', default="mndwi,ndvi,fai,sabi",
+parser.add_argument('--indice', dest='indice', action='store', default="mndwi,ndvi,fai,sabi,slope",
                    help="Define which indice will be used to determine algal blooms (mndwi, ndvi, fai, sabi e/ou slope)")
+parser.add_argument('--min_occurrence', dest='min_occurrence', type=int, action='store', default=4,
+                   help="Define how many indices will have to match in order to determine pixel as algal bloom occurrence")
 parser.add_argument('--force_cache', dest='force_cache', action='store_true',
                    help="Force cache reseting to prevent image errors")
 
@@ -90,7 +92,7 @@ try:
   # ### ABYO execution
 
   # folder to save results from algorithm at
-  folder = folderRoot+'/'+dt.now().strftime("%Y%m%d_%H%M%S")+'[v='+str(version)+'-'+str(args.name)+',dstart='+str(args.date_start)+',dend='+str(args.date_end)+',i='+str(args.indice)+']'
+  folder = folderRoot+'/'+dt.now().strftime("%Y%m%d_%H%M%S")+'[v='+str(version)+'-'+str(args.name)+',dstart='+str(args.date_start)+',dend='+str(args.date_end)+',i='+str(args.indice)+',moc='+str(args.min_occurrence)+']'
   if not os.path.exists(folder):
     os.mkdir(folder)
 
@@ -101,7 +103,8 @@ try:
                    sensor=args.sensor,
                    cache_path=folderCache, 
                    force_cache=args.force_cache,
-                   indice=args.indice)
+                   indice=args.indice,
+                   min_occurrence=args.min_occurrence)
 
   # preprocessing
   abyo.process_timeseries_data()

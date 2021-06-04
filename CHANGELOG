@@ -19,3 +19,4 @@ Version 4:
 
 Version 5: 
 - Changed indice threshold modelling process
+- Added min occurrence support
