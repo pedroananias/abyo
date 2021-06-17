@@ -117,7 +117,7 @@ try:
 
   # save geojson occurrences and clouds
   for year in abyo.df_timeseries.groupby('year')['year'].agg('mean').values:
-    abyo.save_occurrences_geojson(df=abyo.df_timeseries[abyo.df_timeseries==year], path=folder+'/occurrences[y='+str(year)+',dstart='+str(args.date_start)+',dend='+str(args.date_end)+',moc='+str(args.min_occurrence)+'].json')
+    abyo.save_occurrences_geojson(df=abyo.df_timeseries[abyo.df_timeseries['year']==year], path=folder+'/occurrences[y='+str(year)+',dstart='+str(args.date_start)+',dend='+str(args.date_end)+',moc='+str(args.min_occurrence)+'].json')
 
   # save images to Local Folder (first try, based on image size) or to your Google Drive
   #abyo.save_collection_tiff(folder=folder+"/tiff", folderName=args.name+"_"+version, rgb=False)
