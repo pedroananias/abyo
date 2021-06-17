@@ -8,7 +8,7 @@
 #########################################################################################################################################
 
 # ### Version
-version = "V5"
+version = "V6"
 
 
 # ### Module imports
@@ -40,7 +40,7 @@ from modules import misc, gee, abyo
 parser = argparse.ArgumentParser(description=version)
 
 # create arguments
-parser.add_argument('--lat_lon', dest='lat_lon', action='store', default="-48.84725671390528,-22.04547298853004,-47.71712046185493,-23.21347463046867",
+parser.add_argument('--lat_lon', dest='lat_lon', action='store', default="-48.56620427006758,-22.457495449468666,-47.9777042099919,-22.80261692472655",
                    help="Two diagnal points (Latitude 1, Longitude 1, Latitude 2, Longitude 2) of the study area")
 parser.add_argument('--date_start', dest='date_start', action='store', default="1985-01-01",
                    help="Date to start time series")
@@ -110,16 +110,23 @@ try:
   abyo.process_timeseries_data()
 
   # save timeseries in csv file
-  abyo.save_dataset(df=abyo.df_timeseries, path=folder+'/timeseries.csv')
+  abyo.save_dataset(df=abyo.df_timeseries, path=folder+'/timeseries[dstart='+str(args.date_start)+',dend='+str(args.date_end)+',moc='+str(args.min_occurrence)+'].csv')
 
   # create plot
   abyo.save_occurrences_plot(df=abyo.df_timeseries, folder=folder)
 
   # save geojson occurrences and clouds
-  abyo.save_occurrences_geojson(df=abyo.df_timeseries, folder=folder)
+  for year in abyo.df_timeseries.groupby('year')['year'].agg('mean').values:
+    abyo.save_occurrences_geojson(df=abyo.df_timeseries[abyo.df_timeseries==year], path=folder+'/occurrences[y='+str(year)+',dstart='+str(args.date_start)+',dend='+str(args.date_end)+',moc='+str(args.min_occurrence)+'].json')
 
   # save images to Local Folder (first try, based on image size) or to your Google Drive
   #abyo.save_collection_tiff(folder=folder+"/tiff", folderName=args.name+"_"+version, rgb=False)
+
+  # results
+  # add results and save it on disk
+  path_df_timeseries = folderRoot+'/results[moc='+str(args.min_occurrence)+'].csv'
+  df_timeseries = pd.read_csv(path_df_timeseries).drop(['Unnamed: 0'], axis=1, errors="ignore").append(abyo.df_timeseries) if os.path.exists(path_df_timeseries) else abyo.df_timeseries.copy(deep=True)
+  df_timeseries.to_csv(r''+path_df_timeseries)
 
   # ### Script termination notice
   script_time_all = time.time() - start_time

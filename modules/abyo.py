@@ -84,7 +84,7 @@ class Abyo:
   df_timeseries               = None
 
   # hash
-  hash_string                 = "abyo-20200629"
+  hash_string                 = "abyo-20210617"
 
   # constructor
   def __init__(self,
@@ -567,25 +567,21 @@ class Abyo:
 
 
   # save occurrences geojson
-  def save_occurrences_geojson(self, df: pd.DataFrame, folder: str):
+  def save_occurrences_geojson(self, df: pd.DataFrame, path: str):
 
     # warning
     print()
-    print("Saving occurrences to geojson at folder '"+folder+"'...")
-
-    # check if folder exists
-    if not os.path.exists(folder):
-      os.mkdir(folder)
-
-    # years list
-    years_list = df.groupby('year')['year'].agg('mean').values
+    print("Saving occurrences geojson to file '"+path+"'...")
+    
+    # fix nan values
+    df = df.fillna(0)
 
     # # save occurrences data
     features = []
     for index, row in df.iterrows():
-      features.append(geojson.Feature(geometry=geojson.Point((row['lat'], row['lon'])), properties={"occurrence": int(row['occurrence']), "not_occurrence": int(row['not_occurrence']), "pct_occurrence": int(row['pct_occurrence']), "cloud": int(row['cloud']), "pct_cloud": int(row['pct_cloud']), "year": int(row['year']), "instants": int(row['instants'])}))
+      features.append(geojson.Feature(geometry=geojson.Point((row['lat'], row['lon'])), properties={"year": int(row['year']), "pct_occurrence": int(row['pct_occurrence']), "pct_cloud": int(row['pct_cloud']), "instants": int(row['instants'])}))
     fc = geojson.FeatureCollection(features)
-    f = open(folder+"/occurrences.json","w")
+    f = open(path,"w")
     geojson.dump(fc, f)
     f.close()
 
@@ -712,6 +708,9 @@ class Abyo:
     # warning
     print()
     print("Saving dataset to file '"+path+"'...")
+
+    # drop unused columns
+    df.drop(['label', 'pct_occurrence', 'pct_cloud'], axis=1, inplace=True)
 
     # saving dataset to file
     df.to_csv(r''+path, index=False)

@@ -20,3 +20,6 @@ Version 4:
 Version 5: 
 - Changed indice threshold modelling process
 - Added min occurrence support
+
+Version 6: 
+- Cleared some columns from results datasets (csv and json)
