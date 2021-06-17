@@ -330,8 +330,8 @@ class Abyo:
     df_timeseries.drop_duplicates(subset=['pixel','year','lat','lon']+self.attributes, keep='last', inplace=True)
 
     # add porcentage of occurrence and cloud
-    df_timeseries['pct_occurrence']   = (df_timeseries['occurrence']/(df_timeseries['occurrence']+df_timeseries['not_occurrence']))*100
-    df_timeseries['pct_cloud']        = (df_timeseries['cloud']/(df_timeseries['occurrence']+df_timeseries['not_occurrence']+df_timeseries['cloud']))*100
+    df_timeseries['pct_occurrence']   = int((df_timeseries['occurrence']/(df_timeseries['occurrence']+df_timeseries['not_occurrence']))*100)
+    df_timeseries['pct_cloud']        = int((df_timeseries['cloud']/(df_timeseries['occurrence']+df_timeseries['not_occurrence']+df_timeseries['cloud']))*100)
     df_timeseries['instants']         = df_timeseries['occurrence']+df_timeseries['not_occurrence']+df_timeseries['cloud']
 
     # save modified dataframe to its original variable
@@ -710,7 +710,7 @@ class Abyo:
     print("Saving dataset to file '"+path+"'...")
 
     # drop unused columns
-    df = df.drop(['label', 'pct_occurrence', 'pct_cloud'], axis=1)
+    df = df.drop(['label'], axis=1)
 
     # saving dataset to file
     df.to_csv(r''+path, index=False)

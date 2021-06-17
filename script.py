@@ -124,6 +124,7 @@ try:
 
   # results
   # add results and save it on disk
+  abyo.df_timeseries = abyo.df_timeseries.drop(['label'], axis=1)
   path_df_timeseries = folderRoot+'/results[moc='+str(args.min_occurrence)+'].csv'
   df_timeseries = pd.read_csv(path_df_timeseries).drop(['Unnamed: 0'], axis=1, errors="ignore").append(abyo.df_timeseries) if os.path.exists(path_df_timeseries) else abyo.df_timeseries.copy(deep=True)
   df_timeseries.to_csv(r''+path_df_timeseries)
