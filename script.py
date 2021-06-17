@@ -109,11 +109,11 @@ try:
   # preprocessing
   abyo.process_timeseries_data()
 
-  # save timeseries in csv file
-  abyo.save_dataset(df=abyo.df_timeseries, path=folder+'/timeseries[dstart='+str(args.date_start)+',dend='+str(args.date_end)+',moc='+str(args.min_occurrence)+'].csv')
-
   # create plot
   abyo.save_occurrences_plot(df=abyo.df_timeseries, folder=folder)
+
+  # save timeseries in csv file
+  abyo.save_dataset(df=abyo.df_timeseries, path=folder+'/timeseries[dstart='+str(args.date_start)+',dend='+str(args.date_end)+',moc='+str(args.min_occurrence)+'].csv')
 
   # save geojson occurrences and clouds
   for year in abyo.df_timeseries.groupby('year')['year'].agg('mean').values:
