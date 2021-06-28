@@ -97,7 +97,8 @@ class Abyo:
                morph_op:          str           = None,
                morph_op_iters:    int           = 1,
                indice:            str           = "mndwi,ndvi,fai,sabi,slope",
-               min_occurrence:    int           = 4):
+               min_occurrence:    int           = 4,
+               shapefile:         str           = None):
     
     # get sensor parameters
     self.sensor_params  = gee.get_sensor_params(sensor)
@@ -116,6 +117,8 @@ class Abyo:
     self.force_cache                  = force_cache
     self.morph_op                     = morph_op
     self.morph_op_iters               = morph_op_iters
+    self.shapefile_url                = shapefile
+    self.shapefile                    = ee.FeatureCollection(self.shapefile_url) if self.shapefile_url else None
 
     # change GEE indice selected
     gee.indice_selected               = indice
@@ -132,7 +135,10 @@ class Abyo:
       self.dates_timeseries[1]          = dt.fromtimestamp(collection.filterBounds(self.geometry).sort('system:time_start', False).first().get('system:time_start').getInfo()/1000.0)
 
       # create useful time series
-      self.collection                   = collection
+      if self.shapefile:
+        self.collection = collection.map(lambda image: image.clip(self.shapefile))
+      else:
+        self.collection = collection
       self.collection_water             = collection_water
       self.dates_timeseries_interval    = misc.remove_duplicated_dates([dt.fromtimestamp(d/1000.0).replace(hour=00, minute=00, second=00) for d in self.collection.aggregate_array("system:time_start").getInfo()])
 
@@ -259,7 +265,7 @@ class Abyo:
 
   # get cache files for datte
   def get_cache_files(self, year: int):
-    prefix            = self.hash_string.encode()+self.lat_lon.encode()+self.sensor.encode()+str(self.morph_op).encode()+str(self.morph_op_iters).encode()+str(gee.indice_selected).encode()+str(gee.min_occurrence).encode()
+    prefix            = self.hash_string.encode()+self.lat_lon.encode()+self.sensor.encode()+str(self.morph_op).encode()+str(self.morph_op_iters).encode()+str(gee.indice_selected).encode()+str(gee.min_occurrence).encode()+str(self.shapefile_url).encode()
     hash_image        = hashlib.md5(prefix+(str(year)+'original').encode())
     hash_timeseries   = hashlib.md5(prefix+(str(self.years_list[0])+str(self.years_list[-1])).encode())
     return [self.cache_path+'/'+hash_image.hexdigest(), self.cache_path+'/'+hash_timeseries.hexdigest()]

@@ -23,3 +23,6 @@ Version 5:
 
 Version 6: 
 - Cleared some columns from results datasets (csv and json)
+
+Version 7:
+- Added shapefile clipping for region of interest

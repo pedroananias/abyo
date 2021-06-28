@@ -8,7 +8,7 @@
 #########################################################################################################################################
 
 # ### Version
-version = "V6"
+version = "V7"
 
 
 # ### Module imports
@@ -54,6 +54,8 @@ parser.add_argument('--indice', dest='indice', action='store', default="mndwi,nd
                    help="Define which indice will be used to determine algal blooms (mndwi, ndvi, fai, sabi e/ou slope)")
 parser.add_argument('--min_occurrence', dest='min_occurrence', type=int, action='store', default=4,
                    help="Define how many indices will have to match in order to determine pixel as algal bloom occurrence")
+parser.add_argument('--shapefile', dest='shapefile', action='store',
+                   help="Use a shapefile to clip a region of interest")
 parser.add_argument('--force_cache', dest='force_cache', action='store_true',
                    help="Force cache reseting to prevent image errors")
 
@@ -104,7 +106,8 @@ try:
                    cache_path=folderCache, 
                    force_cache=args.force_cache,
                    indice=args.indice,
-                   min_occurrence=args.min_occurrence)
+                   min_occurrence=args.min_occurrence,
+                   shapefile=args.shapefile)
 
   # preprocessing
   abyo.process_timeseries_data()
