@@ -9,7 +9,7 @@ SCRIPT="script.py"
 CLEAR="sudo pkill -f /home/pedro/anaconda3"
 
 # ATTRIBUTES
-declare -a MIN_OCCS=(3 4)
+declare -a MIN_OCCS=(4)
 
 # SHOW BASE DIR
 echo "$PYTHON $BASEDIR/$SCRIPT"
@@ -24,7 +24,7 @@ for year in {1985..2020}
 do
 	for min_occ in "${MIN_OCCS[@]}"
 	do
-		eval "$PYTHON $BASEDIR/$SCRIPT --lat_lon=$LAT_LON --date_start=$year-01-01 --date_end=$year-12-31 --min_occurrence=$min_occ --shapefile=users/pedroananias/bruno/bbhr"
+		eval "$PYTHON $BASEDIR/$SCRIPT --lat_lon=$LAT_LON --date_start=$year-01-01 --date_end=$year-03-31 --date_start2=$year-10-01 --date_end2=$year-12-31 --min_occurrence=$min_occ --shapefile=users/pedroananias/bruno/bbhr"
 	done
 done
 ############################################################################################

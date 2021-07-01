@@ -8,7 +8,7 @@
 #########################################################################################################################################
 
 # ### Version
-version = "V7"
+version = "V8"
 
 
 # ### Module imports
@@ -46,6 +46,10 @@ parser.add_argument('--date_start', dest='date_start', action='store', default="
                    help="Date to start time series")
 parser.add_argument('--date_end', dest='date_end', action='store', default="2001-12-31",
                    help="Date to end time series")
+parser.add_argument('--date_start2', dest='date_start2', action='store', default=None,
+                   help="Date to start time series (second period)")
+parser.add_argument('--date_end2', dest='date_end2', action='store', default=None,
+                   help="Date to end time series (second period)")
 parser.add_argument('--name', dest='name', action='store', default="bbhr",
                    help="Place where to save generated files")
 parser.add_argument('--sensor', dest='sensor', action='store', default="landsat578",
@@ -94,7 +98,7 @@ try:
   # ### ABYO execution
 
   # folder to save results from algorithm at
-  folder = folderRoot+'/'+dt.now().strftime("%Y%m%d_%H%M%S")+'[v='+str(version)+'-'+str(args.name)+',dstart='+str(args.date_start)+',dend='+str(args.date_end)+',i='+str(args.indice)+',moc='+str(args.min_occurrence)+']'
+  folder = folderRoot+'/'+dt.now().strftime("%Y%m%d_%H%M%S")+'[v='+str(version)+'-'+str(args.name)+',dstart='+str(args.date_start)+',dend='+str(args.date_end)+',dstart2='+str(args.date_start2)+',dend2='+str(args.date_end2)+',i='+str(args.indice)+',moc='+str(args.min_occurrence)+']'
   if not os.path.exists(folder):
     os.mkdir(folder)
 
@@ -102,6 +106,8 @@ try:
   abyo = abyo.Abyo(lat_lon=args.lat_lon,
                    date_start=dt.strptime(args.date_start, "%Y-%m-%d"),
                    date_end=dt.strptime(args.date_end, "%Y-%m-%d"),
+                   date_start2=dt.strptime(args.date_start2, "%Y-%m-%d") if not args.date_start2 is None else None,
+                   date_end2=dt.strptime(args.date_end2, "%Y-%m-%d") if not args.date_end2 is None else None,
                    sensor=args.sensor,
                    cache_path=folderCache, 
                    force_cache=args.force_cache,
@@ -116,11 +122,11 @@ try:
   abyo.save_occurrences_plot(df=abyo.df_timeseries, folder=folder)
 
   # save timeseries in csv file
-  abyo.save_dataset(df=abyo.df_timeseries, path=folder+'/timeseries[dstart='+str(args.date_start)+',dend='+str(args.date_end)+',moc='+str(args.min_occurrence)+'].csv')
+  abyo.save_dataset(df=abyo.df_timeseries, path=folder+'/timeseries[dstart='+str(args.date_start)+',dend='+str(args.date_end)+',dstart2='+str(args.date_start2)+',dend2='+str(args.date_end2)+',moc='+str(args.min_occurrence)+'].csv')
 
   # save geojson occurrences and clouds
   for year in abyo.df_timeseries.groupby('year')['year'].agg('mean').values:
-    abyo.save_occurrences_geojson(df=abyo.df_timeseries[abyo.df_timeseries['year']==year], path=folder+'/occurrences[y='+str(year)+',dstart='+str(args.date_start)+',dend='+str(args.date_end)+',moc='+str(args.min_occurrence)+'].json')
+    abyo.save_occurrences_geojson(df=abyo.df_timeseries[abyo.df_timeseries['year']==year], path=folder+'/occurrences[y='+str(year)+',dstart='+str(args.date_start)+',dend='+str(args.date_end)+',dstart2='+str(args.date_start2)+',dend2='+str(args.date_end2)+',moc='+str(args.min_occurrence)+'].json')
 
   # save images to Local Folder (first try, based on image size) or to your Google Drive
   #abyo.save_collection_tiff(folder=folder+"/tiff", folderName=args.name+"_"+version, rgb=False)

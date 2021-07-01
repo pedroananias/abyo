@@ -91,6 +91,8 @@ class Abyo:
                lat_lon:           str,
                date_start:        dt,
                date_end:          dt,
+               date_start2:       dt            = None,
+               date_end2:         dt            = None,
                sensor:            str           = "landsat578",
                cache_path:        str           = None, 
                force_cache:       bool          = False,
@@ -112,6 +114,8 @@ class Abyo:
     self.lat_lon                      = lat_lon
     self.date_start                   = date_start
     self.date_end                     = date_end
+    self.date_start2                  = date_start2
+    self.date_end2                    = date_end2
     self.sensor                       = sensor
     self.cache_path                   = cache_path
     self.force_cache                  = force_cache
@@ -127,6 +131,12 @@ class Abyo:
     # creating final sensor collection
     collection, collection_water      = gee.get_sensor_collections(geometry=self.geometry, sensor=self.sensor, dates=[dt.strftime(self.date_start, "%Y-%m-%d"), dt.strftime(self.date_end, "%Y-%m-%d")])
 
+    # check if user selected a second date period
+    if not self.date_start2 is None and not self.date_end2 is None:
+      collection2, collection_water2 = gee.get_sensor_collections(geometry=self.geometry, sensor=self.sensor, dates=[dt.strftime(self.date_start2, "%Y-%m-%d"), dt.strftime(self.date_end2, "%Y-%m-%d")])
+      collection = collection.merge(collection2)
+      collection_water = collection_water.merge(collection_water2)
+
     # check if there is imags to use
     if collection.size().getInfo() > 0:
 
@@ -134,7 +144,7 @@ class Abyo:
       self.dates_timeseries[0]          = dt.fromtimestamp(collection.filterBounds(self.geometry).sort('system:time_start', True).first().get('system:time_start').getInfo()/1000.0)
       self.dates_timeseries[1]          = dt.fromtimestamp(collection.filterBounds(self.geometry).sort('system:time_start', False).first().get('system:time_start').getInfo()/1000.0)
 
-      # create useful time series
+      # create usefull time series
       if self.shapefile:
         self.collection = collection.map(lambda image: image.clip(self.shapefile))
       else:
@@ -265,7 +275,7 @@ class Abyo:
 
   # get cache files for datte
   def get_cache_files(self, year: int):
-    prefix            = self.hash_string.encode()+self.lat_lon.encode()+self.sensor.encode()+str(self.morph_op).encode()+str(self.morph_op_iters).encode()+str(gee.indice_selected).encode()+str(gee.min_occurrence).encode()+str(self.shapefile_url).encode()
+    prefix            = self.hash_string.encode()+str(str(self.date_start)+str(self.date_end)+str(self.date_start2)+str(self.date_end2)).encode()+self.lat_lon.encode()+self.sensor.encode()+str(self.morph_op).encode()+str(self.morph_op_iters).encode()+str(gee.indice_selected).encode()+str(gee.min_occurrence).encode()+str(self.shapefile_url).encode()
     hash_image        = hashlib.md5(prefix+(str(year)+'original').encode())
     hash_timeseries   = hashlib.md5(prefix+(str(self.years_list[0])+str(self.years_list[-1])).encode())
     return [self.cache_path+'/'+hash_image.hexdigest(), self.cache_path+'/'+hash_timeseries.hexdigest()]

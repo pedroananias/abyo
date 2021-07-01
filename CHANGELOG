@@ -26,3 +26,6 @@ Version 6:
 
 Version 7:
 - Added shapefile clipping for region of interest
+
+Version 8:
+- Added second date period for splitted seasons
